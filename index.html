@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4.1 — Ball-Centered Peripersonal Space</title>
+<title>PoseTwin POV v4.3 — Video PPS Overlay</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4.1</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4.3</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.1 · Stable GitHub Pages Build</span>
+    <span class="badge">v4.3 · Video PPS Overlay</span>
   </div>
 
   <div class="layout">
@@ -77,6 +77,15 @@ input[type=range]{width:100%}
         </div>
         <div class="ctrl"><div class="ctrlHead"><label>指定球初始圈半徑</label><output id="oPickR">38 px</output></div><input id="pickR" type="range" min="14" max="110" step="1" value="38"></div>
         <div class="small">先暫停在球看得清楚的影格 → 按「指定球」→ 點球中心。之後用局部外觀追蹤，不依賴球類別辨識。</div>
+        <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <input id="showVideoPps" type="checkbox" checked> 顯示影片近體空間
+          </label>
+          <div class="ctrl">
+            <div class="ctrlHead"><label>影片 PPS 透明度</label><output id="oVideoAlpha">35%</output></div>
+            <input id="videoAlpha" type="range" min="10" max="65" step="1" value="35">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -127,7 +136,7 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.1 · stable dynamic imports · manual ball tracking · 3D peripersonal-space rendering</div>
+  <div class="footer">PoseTwin POV v4.3 · video PPS overlay · manual ball tracking · 3D peripersonal-space rendering</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -136,7 +145,7 @@ input[type=range]{width:100%}
 const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
-const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62};
+const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.35,showVideoPps:true};
 const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
 let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
 let FilesetResolver=null, HandLandmarker=null;
@@ -330,6 +339,51 @@ function buildField(){
   }
 }
 
+
+function ballStateInfo(){
+  if(!S.ball){
+    return {key:'none',label:'等待球',color:0x7d95a5,nearest:Infinity,work:false,workD:Infinity};
+  }
+
+  const ds=S.hands
+    .map(h=>({h,d:d3(S.ball,h)}))
+    .sort((a,b)=>a.d-b.d);
+
+  const nearest=ds[0]?.d ?? Infinity;
+  const insideHands=nearest<=P.handPps;
+  const inReach=nearest<=P.reach;
+
+  let work=false,workD=Infinity;
+  if(S.hands.length===2){
+    const a=S.hands[0],b=S.hands[1];
+    const mid={
+      x:(a.x+b.x)/2,
+      y:(a.y+b.y)/2,
+      z:(a.z+b.z)/2
+    };
+    workD=d3(S.ball,mid);
+    const sep=d3(a,b);
+    const workRadius=Math.max(.17,Math.min(.36,sep*.52));
+    work=workD<=workRadius;
+  }
+
+  if(nearest<=P.contact){
+    return {key:'contact',label:'觸球候選',color:0xff6268,nearest,work,workD};
+  }
+  if(work){
+    return {key:'work',label:'進入雙手工作區',color:0xff9d4d,nearest,work,workD};
+  }
+  if(insideHands){
+    return {key:'pps',label:'進入手部近體空間',color:0xffd95c,nearest,work,workD};
+  }
+  if(inReach){
+    return {key:'reach',label:'進入可及區',color:0x42df8b,nearest,work,workD};
+  }
+  return {key:'extra',label:'離體空間',color:0x56a9ff,nearest,work,workD};
+}
+
+// Startup self-check: v4.1 accidentally omitted ballStateInfo(), which stopped initialization.
+
 // ---------- MediaPipe hands ----------
 const HAND_MODEL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 async function initHands(){
@@ -424,6 +478,68 @@ function trackBall(now){
   m.history.push({x:m.x,y:m.y,z:m.z});if(m.history.length>45)m.history.shift();
 }
 
+
+function ellipseFillStroke(x,y,rx,ry,fill,stroke,line=2){
+  if(!isFinite(x)||!isFinite(y)||!isFinite(rx)||!isFinite(ry)||rx<=0||ry<=0)return;
+  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+  if(fill){ctx.fillStyle=fill;ctx.fill()}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke()}
+}
+function handPixelRadius(h,meters){
+  return Math.max(10,Math.min(canvas.width*.72,fx()*meters/Math.max(.12,h.z)));
+}
+function drawVideoPps(){
+  if(!P.showVideoPps||!S.hands.length)return;
+  const alpha=P.videoAlpha;
+  const state=ballStateInfo();
+  const nearestHand=S.ball
+    ? S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d)[0]?.h
+    : null;
+
+  ctx.save();
+
+  for(const h of S.hands){
+    const rr=handPixelRadius(h,P.reach);
+    ellipseFillStroke(h.cx,h.cy,rr,rr*.78,
+      `rgba(66,223,139,${alpha*.20})`,
+      `rgba(66,223,139,${alpha*.72})`,
+      Math.max(1.5,canvas.width/650));
+  }
+
+  for(const h of S.hands){
+    const rp=handPixelRadius(h,P.handPps);
+    const invaded=S.ball&&nearestHand===h&&(state.key==='pps'||state.key==='work'||state.key==='contact');
+    ellipseFillStroke(h.cx,h.cy,rp,rp*.82,
+      invaded?`rgba(255,217,92,${Math.min(.62,alpha*1.25)})`:`rgba(255,217,92,${alpha*.48})`,
+      invaded?`rgba(255,235,140,${Math.min(.95,alpha*2)})`:`rgba(255,217,92,${Math.min(.9,alpha*1.45)})`,
+      invaded?Math.max(3,canvas.width/420):Math.max(2,canvas.width/560));
+  }
+
+  if(S.hands.length===2){
+    const a=S.hands[0],b=S.hands[1];
+    const mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2;
+    const pxSep=Math.hypot(a.cx-b.cx,a.cy-b.cy);
+    const zMid=(a.z+b.z)/2;
+    const base=Math.max(24,Math.min(canvas.width*.38,fx()*Math.max(.17,Math.min(.36,d3(a,b)*.52))/Math.max(.12,zMid)));
+    const active=state.key==='work'||state.key==='contact';
+    ctx.save();ctx.translate(mx,my);ctx.rotate(Math.atan2(b.cy-a.cy,b.cx-a.cx));
+    ellipseFillStroke(0,0,Math.max(base,pxSep*.38),Math.max(22,base*.58),
+      active?`rgba(255,157,77,${Math.min(.62,alpha*1.25)})`:`rgba(255,157,77,${alpha*.36})`,
+      active?`rgba(255,185,110,${Math.min(.95,alpha*2)})`:`rgba(255,157,77,${Math.min(.8,alpha*1.25)})`,
+      active?Math.max(3,canvas.width/420):Math.max(2,canvas.width/600));
+    ctx.restore();
+  }
+
+  if(S.ball&&nearestHand){
+    ctx.beginPath();ctx.moveTo(S.ball.cx,S.ball.cy);ctx.lineTo(nearestHand.cx,nearestHand.cy);
+    ctx.strokeStyle=state.key==='contact'?'#ff6268':state.key==='work'?'#ff9d4d':state.key==='pps'?'#ffd95c':'rgba(255,255,255,.55)';
+    ctx.lineWidth=Math.max(2,canvas.width/620);
+    ctx.setLineDash(state.key==='extra'?[7,6]:[]);
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
 // ---------- video overlay ----------
 const HAND_CONNS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function drawVideo(){
@@ -433,6 +549,8 @@ function drawVideo(){
 
   // Very light POV reference only.
   ctx.save();ctx.strokeStyle='rgba(255,255,255,.17)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();ctx.restore();
+
+  drawVideoPps();
 
   for(const h of S.hands){
     ctx.save();ctx.strokeStyle=h.side==='Left'?'#66d6ff':'#42df8b';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=Math.max(1.5,canvas.width/650);
@@ -497,6 +615,9 @@ $('#pickBall').onclick=()=>{S.picking=!S.picking;$('#pickBall').classList.toggle
 $('#clearBall').onclick=()=>{S.ball=null;S.lastState='';buildField();updateMetrics();$('#renderState').textContent='等待球';setStatus('球追蹤已清除','可重新指定球')};
 canvas.addEventListener('pointerdown',e=>{if(!S.picking||!video.videoWidth)return;const p=pointerXY(e);setBallAt(p.x,p.y);drawVideo();buildField()});
 $('#pickR').addEventListener('input',()=>$('#oPickR').value=$('#pickR').value+' px');
+$('#showVideoPps').addEventListener('change',()=>{P.showVideoPps=$('#showVideoPps').checked;drawVideo();});
+$('#videoAlpha').addEventListener('input',()=>{P.videoAlpha=+$('#videoAlpha').value/100;$('#oVideoAlpha').value=Math.round(P.videoAlpha*100)+'%';drawVideo();});
+
 
 $('#videoFile').addEventListener('change',e=>{
   const f=e.target.files?.[0];if(!f)return;
@@ -523,7 +644,24 @@ function sync(){
 for(const id of ['fov','palmCm','ballCm','handPps','contact'])$('#'+id).addEventListener('input',sync);
 sync();
 
-requestAnimationFrame(frameLoop);loop3();initThree();initHands();
+try{
+  // If this line runs, the core script parsed successfully.
+  $('#detail').textContent='核心程式已啟動；正在載入 3D 與手部模型…';
+  requestAnimationFrame(frameLoop);
+  loop3();
+  initThree();
+  initHands();
+
+  // Loading should not remain ambiguous forever.
+  setTimeout(()=>{
+    if(!S.ready && !S.handError){
+      setStatus('手部模型仍在載入','若超過 15 秒仍無變化，請重新整理或檢查網路/CDN。影片與指定球仍可先使用。');
+    }
+  },8000);
+}catch(e){
+  console.error(e);
+  setStatus('啟動失敗',e?.message||String(e));
+}
 </script>
 </body>
 </html>
