@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4 — Ball-Centered Peripersonal Space</title>
+<title>PoseTwin POV v4.1 — Ball-Centered Peripersonal Space</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4.1</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.0 · PoseTwin-style Spatial Render</span>
+    <span class="badge">v4.1 · Stable GitHub Pages Build</span>
   </div>
 
   <div class="layout">
@@ -87,7 +87,7 @@ input[type=range]{width:100%}
           <span id="renderState" class="statePill">等待球 / 手</span>
         </div>
         <div class="renderWrap">
-          <div id="threeMount"></div>
+          <div id="threeMount"><div style="padding:20px;color:#8da8b7;font-size:13px">3D 模組載入中…</div></div>
           <div class="renderNote">白色 = 自己 · 青 / 綠 = 左右手 · 黃色透明空間 = 手部近體空間 · 中央橘色 = 雙手工作區 · 球依第一視角估測位置在 3D 空間移動</div>
         </div>
       </div>
@@ -127,21 +127,30 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.0 · HandLandmarker + manual visual ball tracking + 3D peripersonal-space rendering</div>
+  <div class="footer">PoseTwin POV v4.1 · stable dynamic imports · manual ball tracking · 3D peripersonal-space rendering</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
 
-<script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js";
-import {OrbitControls} from "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/controls/OrbitControls.js";
-import {FilesetResolver,HandLandmarker} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm";
-
+<script>
 const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
 const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62};
-const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0};
+const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
+let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
+let FilesetResolver=null, HandLandmarker=null;
+
+window.addEventListener('error',e=>{
+  const msg=e?.message||'未知錯誤';
+  console.error(e);
+  if($('#status')) setStatus('程式錯誤',msg);
+});
+window.addEventListener('unhandledrejection',e=>{
+  const msg=e?.reason?.message||String(e?.reason||'未知錯誤');
+  console.error(e);
+  if($('#status')) setStatus('載入錯誤',msg);
+});
 
 function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b }
 function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
@@ -151,24 +160,22 @@ function pxToY(py,z){return-(py-canvas.height*.54)*z/fx()}
 function d3(a,b){return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z)}
 
 // ---------- THREE ----------
-const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x07131b,5.5,13);
-const cam3=new THREE.PerspectiveCamera(44,1,.1,50);cam3.position.set(3.1,2.55,4.5);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));mount.appendChild(renderer.domElement);
-const controls=new OrbitControls(cam3,renderer.domElement);controls.target.set(0,1.1,-.65);controls.enableDamping=true;
-scene.add(new THREE.HemisphereLight(0xc9efff,0x15212b,2.6));
-const dl=new THREE.DirectionalLight(0xffffff,2.6);dl.position.set(4,6,3);scene.add(dl);
-const floor=new THREE.Mesh(new THREE.CircleGeometry(4.6,96),new THREE.MeshStandardMaterial({color:0x0a1821,roughness:.92}));floor.rotation.x=-Math.PI/2;scene.add(floor);
-const grid=new THREE.GridHelper(8,16,0x31576b,0x18303d);grid.position.y=.004;scene.add(grid);
+let orbit={theta:.60,phi:1.02,r:5.7,drag:false,x:0,y:0};
 
 function mat(color,opacity=1){
+  if(!THREE)return null;
   return new THREE.MeshStandardMaterial({color,roughness:.48,metalness:.05,transparent:opacity<1,opacity,depthWrite:opacity>.55,side:THREE.DoubleSide});
 }
-function basic(color,opacity=.15){return new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide})}
+function basic(color,opacity=.15){
+  if(!THREE)return null;
+  return new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide});
+}
 function limb(a,b,r,color){
   const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5),len=a.distanceTo(b);
   const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,12),mat(color));
-  m.position.copy(mid);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3().subVectors(b,a).normalize());return m;
+  m.position.copy(mid);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3().subVectors(b,a).normalize());
+  return m;
 }
 function makeSelf(){
   const g=new THREE.Group(),c=0xecf8ff;
@@ -184,47 +191,123 @@ function makeSelf(){
   g.add(limb(hipL,knL,.064,c),limb(knL,ftL,.054,c),limb(hipR,knR,.064,c),limb(knR,ftR,.054,c));
   return g;
 }
-const self=makeSelf();scene.add(self);
+function updateCamera(){
+  if(!cam3)return;
+  const target={x:0,y:1.08,z:-.65};
+  const sp=Math.sin(orbit.phi);
+  cam3.position.set(
+    target.x+orbit.r*sp*Math.cos(orbit.theta),
+    target.y+orbit.r*Math.cos(orbit.phi),
+    target.z+orbit.r*sp*Math.sin(orbit.theta)
+  );
+  cam3.lookAt(target.x,target.y,target.z);
+}
+function resize3(){
+  if(!renderer||!cam3)return;
+  const r=mount.getBoundingClientRect();
+  renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);
+  cam3.aspect=Math.max(.1,r.width/Math.max(1,r.height));
+  cam3.updateProjectionMatrix();
+}
+function loop3(){
+  if(renderer&&scene&&cam3)renderer.render(scene,cam3);
+  requestAnimationFrame(loop3);
+}
+function initPointerOrbit(){
+  mount.addEventListener('pointerdown',e=>{
+    orbit.drag=true;orbit.x=e.clientX;orbit.y=e.clientY;
+    try{mount.setPointerCapture(e.pointerId)}catch{}
+  });
+  mount.addEventListener('pointermove',e=>{
+    if(!orbit.drag)return;
+    const dx=e.clientX-orbit.x,dy=e.clientY-orbit.y;
+    orbit.x=e.clientX;orbit.y=e.clientY;
+    orbit.theta-=dx*.008;
+    orbit.phi=Math.max(.35,Math.min(1.45,orbit.phi+dy*.006));
+    updateCamera();
+  });
+  const stop=e=>{orbit.drag=false;try{mount.releasePointerCapture(e.pointerId)}catch{}};
+  mount.addEventListener('pointerup',stop);
+  mount.addEventListener('pointercancel',stop);
+  mount.addEventListener('wheel',e=>{
+    e.preventDefault();
+    orbit.r=Math.max(3.0,Math.min(9.0,orbit.r+e.deltaY*.005));
+    updateCamera();
+  },{passive:false});
+}
+async function initThree(){
+  try{
+    const mod=await import("https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js");
+    THREE=mod;
+    scene=new THREE.Scene();
+    scene.fog=new THREE.Fog(0x07131b,5.5,13);
+    cam3=new THREE.PerspectiveCamera(44,1,.1,50);
+    renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    mount.innerHTML='';
+    mount.appendChild(renderer.domElement);
 
-const fieldRoot=new THREE.Group(),handRoot=new THREE.Group(),ballRoot=new THREE.Group();
-scene.add(fieldRoot,handRoot,ballRoot);
+    scene.add(new THREE.HemisphereLight(0xc9efff,0x15212b,2.6));
+    const dl=new THREE.DirectionalLight(0xffffff,2.6);dl.position.set(4,6,3);scene.add(dl);
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(4.6,96),new THREE.MeshStandardMaterial({color:0x0a1821,roughness:.92}));
+    floor.rotation.x=-Math.PI/2;scene.add(floor);
+    const grid=new THREE.GridHelper(8,16,0x31576b,0x18303d);grid.position.y=.004;scene.add(grid);
 
-function clearGroup(g){
-  while(g.children.length){
-    const c=g.children.pop();
-    c.traverse?.(o=>{o.geometry?.dispose?.();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose?.());else o.material.dispose?.()}});
+    self=makeSelf();scene.add(self);
+    fieldRoot=new THREE.Group();handRoot=new THREE.Group();ballRoot=new THREE.Group();
+    scene.add(fieldRoot,handRoot,ballRoot);
+
+    initPointerOrbit();
+    updateCamera();
+    resize3();
+    new ResizeObserver(resize3).observe(mount);
+    S.threeReady=true;
+    buildField();
+  }catch(e){
+    console.error(e);
+    S.threeError=e?.message||String(e);
+    mount.innerHTML='<div style="padding:20px;color:#ff9b9f;font-size:13px;line-height:1.6">3D 模組載入失敗，但影片與球追蹤仍可使用。<br>'+String(S.threeError).replaceAll('<','&lt;')+'</div>';
   }
 }
-
-function resize3(){
-  const r=mount.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam3.aspect=Math.max(.1,r.width/r.height);cam3.updateProjectionMatrix();
+function clearGroup(g){
+  if(!g)return;
+  while(g.children.length){
+    const c=g.children.pop();
+    c.traverse?.(o=>{
+      o.geometry?.dispose?.();
+      if(o.material){
+        if(Array.isArray(o.material))o.material.forEach(m=>m.dispose?.());
+        else o.material.dispose?.();
+      }
+    });
+  }
 }
-new ResizeObserver(resize3).observe(mount);resize3();
-function loop3(){controls.update();renderer.render(scene,cam3);requestAnimationFrame(loop3)}loop3();
-
 function handScenePos(h){
-  // render in front of the self mannequin; -Z means forward into the scene.
   return new THREE.Vector3(h.x,1.12+h.y,-Math.max(.12,h.z));
 }
 function buildField(){
+  if(!S.threeReady||!THREE||!fieldRoot||!handRoot||!ballRoot)return;
   clearGroup(fieldRoot);clearGroup(handRoot);clearGroup(ballRoot);
 
-  // Torso-centered PPS base, PoseTwin-like spatial envelope.
   const torsoPps=new THREE.Mesh(new THREE.SphereGeometry(.58,40,26),basic(0xffd95c,.075));
-  torsoPps.scale.set(1.0,1.12,1.25);torsoPps.position.set(0,1.12,-.25);fieldRoot.add(torsoPps);
+  torsoPps.scale.set(1.0,1.12,1.25);
+  torsoPps.position.set(0,1.12,-.25);
+  fieldRoot.add(torsoPps);
 
   const handMeshes=[];
   for(const h of S.hands){
     const hp=handScenePos(h),hc=h.side==='Left'?0x66d6ff:0x42df8b;
-    const node=new THREE.Mesh(new THREE.SphereGeometry(.07,20,14),mat(hc));node.position.copy(hp);handRoot.add(node);
+    const node=new THREE.Mesh(new THREE.SphereGeometry(.07,20,14),mat(hc));
+    node.position.copy(hp);handRoot.add(node);
 
-    const halo=new THREE.Mesh(new THREE.SphereGeometry(P.handPps,32,20),basic(0xffd95c,.14));halo.position.copy(hp);halo.scale.set(1.0,.82,1.14);fieldRoot.add(halo);
+    const halo=new THREE.Mesh(new THREE.SphereGeometry(P.handPps,32,20),basic(0xffd95c,.14));
+    halo.position.copy(hp);halo.scale.set(1.0,.82,1.14);fieldRoot.add(halo);
 
-    const reach=new THREE.Mesh(new THREE.SphereGeometry(P.reach,28,18),basic(0x42df8b,.045));reach.position.copy(hp);reach.scale.set(1.0,.70,1.10);fieldRoot.add(reach);
+    const reach=new THREE.Mesh(new THREE.SphereGeometry(P.reach,28,18),basic(0x42df8b,.045));
+    reach.position.copy(hp);reach.scale.set(1.0,.70,1.10);fieldRoot.add(reach);
     handMeshes.push({h,p:hp});
   }
 
-  // Dynamic bimanual workspace between left and right hands.
   if(handMeshes.length===2){
     const a=handMeshes[0].p,b=handMeshes[1].p,mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
     const sep=a.distanceTo(b);
@@ -238,7 +321,6 @@ function buildField(){
     const ball=new THREE.Mesh(new THREE.SphereGeometry(Math.max(.055,P.ballM/2),28,20),mat(state.color));
     ball.position.copy(bp);ballRoot.add(ball);
 
-    // trajectory tail
     if(S.ball.history?.length>1){
       const pts=S.ball.history.slice(-22).map(q=>new THREE.Vector3(q.x,1.12+q.y,-q.z));
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
@@ -248,36 +330,29 @@ function buildField(){
   }
 }
 
-function ballStateInfo(){
-  if(!S.ball)return{key:'none',label:'等待球',color:0x7d95a5};
-  const ds=S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d);
-  const nearest=ds[0]?.d??Infinity;
-  const insideHands=nearest<=P.handPps;
-  const inReach=nearest<=P.reach;
-
-  let work=false,workD=Infinity;
-  if(S.hands.length===2){
-    const a=S.hands[0],b=S.hands[1],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2};
-    workD=d3(S.ball,mid);
-    const sep=d3(a,b);
-    work=workD<=Math.max(.17,Math.min(.36,sep*.52));
-  }
-
-  if(nearest<=P.contact)return{key:'contact',label:'觸球候選',color:0xff6268,nearest,work,workD};
-  if(work)return{key:'work',label:'進入雙手工作區',color:0xff9d4d,nearest,work,workD};
-  if(insideHands)return{key:'pps',label:'進入手部近體空間',color:0xffd95c,nearest,work,workD};
-  if(inReach)return{key:'reach',label:'進入可及區',color:0x42df8b,nearest,work,workD};
-  return{key:'extra',label:'離體空間',color:0x56a9ff,nearest,work,workD};
-}
-
 // ---------- MediaPipe hands ----------
 const HAND_MODEL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-async function init(){
+async function initHands(){
   try{
+    const mp=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm");
+    FilesetResolver=mp.FilesetResolver;
+    HandLandmarker=mp.HandLandmarker;
     const vision=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
-    S.hand=await HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.38,minHandPresenceConfidence:.35,minTrackingConfidence:.38});
-    S.ready=true;setStatus('手部模型已就緒','載入影片，再指定球');
-  }catch(e){console.error(e);setStatus('手部模型載入失敗','球追蹤仍可使用；手部 PPS 將無法自動更新')}
+    S.hand=await HandLandmarker.createFromOptions(vision,{
+      baseOptions:{modelAssetPath:HAND_MODEL},
+      runningMode:'VIDEO',
+      numHands:2,
+      minHandDetectionConfidence:.38,
+      minHandPresenceConfidence:.35,
+      minTrackingConfidence:.38
+    });
+    S.ready=true;
+    setStatus('手部模型已就緒','載入影片，再指定球');
+  }catch(e){
+    console.error(e);
+    S.handError=e?.message||String(e);
+    setStatus('手部模型載入失敗','影片與球追蹤仍可使用；手部 PPS 暫停');
+  }
 }
 function analyzeHands(now){
   if(!S.hand||now-S.lastHandAt<28)return;S.lastHandAt=now;
@@ -448,7 +523,7 @@ function sync(){
 for(const id of ['fov','palmCm','ballCm','handPps','contact'])$('#'+id).addEventListener('input',sync);
 sync();
 
-init();requestAnimationFrame(frameLoop);buildField();
+requestAnimationFrame(frameLoop);loop3();initThree();initHands();
 </script>
 </body>
 </html>
