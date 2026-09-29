@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4.5 — Persistent Layered Arm PPS</title>
+<title>PoseTwin POV v4.6 — Contour Arm PPS</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4.5</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4.6</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.5 · Persistent Layered Arm PPS</span>
+    <span class="badge">v4.6 · Contour Arm PPS</span>
   </div>
 
   <div class="layout">
@@ -76,14 +76,14 @@ input[type=range]{width:100%}
           <button id="clearBall" class="btn">清除球追蹤</button>
         </div>
         <div class="ctrl"><div class="ctrlHead"><label>指定球初始圈半徑</label><output id="oPickR">38 px</output></div><input id="pickR" type="range" min="14" max="110" step="1" value="38"></div>
-        <div class="small">先暫停在球看得清楚的影格 → 按「指定球」→ 點球中心。之後用局部外觀追蹤，不依賴球類別辨識。</div>
+        <div class="small">影片會直接顯示 PoseTwin 式分層輪廓：紅色手臂/手本體 → 黃色 1.5× 近體空間 → 藍色外層。球可另外用「指定球」追蹤。</div>
         <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px">
             <input id="showVideoPps" type="checkbox" checked> 顯示影片分層空間
           </label>
           <div class="ctrl">
-            <div class="ctrlHead"><label>空間透明度</label><output id="oVideoAlpha">35%</output></div>
-            <input id="videoAlpha" type="range" min="10" max="65" step="1" value="35">
+            <div class="ctrlHead"><label>空間透明度</label><output id="oVideoAlpha">48%</output></div>
+            <input id="videoAlpha" type="range" min="10" max="80" step="1" value="48">
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.5 · persistent arms · red body · yellow PPS 1.5× · blue outer space</div>
+  <div class="footer">PoseTwin POV v4.6 · contour arm bands · red body · yellow PPS 1.5× · blue outer space</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -145,7 +145,7 @@ input[type=range]{width:100%}
 const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
-const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.35,showVideoPps:true,ppsScale:1.5,farScale:2.35};
+const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.48,showVideoPps:true,ppsScale:1.5,farScale:2.35};
 const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,lastPausedAnalyze:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
 let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
 let FilesetResolver=null, HandLandmarker=null;
@@ -448,7 +448,7 @@ function analyzeHands(now){
     }
 
     // Keep a recently-seen hand through short ball/hand occlusions.
-    const HOLD_MS=850;
+    const HOLD_MS=1200;
     for(const prev of S.hands){
       if(detected.some(h=>h.side===prev.side))continue;
       const age=now-(prev.seenAt||0);
@@ -519,41 +519,120 @@ function trackBall(now){
 
 function armWidthPx(h){
   const p5=h.lm?.[5],p17=h.lm?.[17];
-  const palm=(p5&&p17)?Math.hypot(p5.x-p17.x,p5.y-p17.y):38;
-  return Math.max(24,Math.min(110,palm*.96));
+  const palm=(p5&&p17)?Math.hypot(p5.x-p17.x,p5.y-p17.y):40;
+  return Math.max(26,Math.min(120,palm*1.02));
 }
-function inferredForearm(h){
+function clampPoint(p){
+  return {
+    x:Math.max(-80,Math.min(canvas.width+80,p.x)),
+    y:Math.max(-80,Math.min(canvas.height+80,p.y))
+  };
+}
+function forearmEntryPoint(h){
   const wrist=h.lm?.[0]||{x:h.cx,y:h.cy};
-  const palm=h.lm?.[9]||{x:h.cx,y:h.cy-18};
-  let vx=wrist.x-palm.x,vy=wrist.y-palm.y;
-  let len=Math.hypot(vx,vy);
-  if(len<3){vx=0;vy=1;len=1}
-  vx/=len;vy/=len;
-  if(vy<-.05){vx=-vx;vy=-vy}
-  const ext=Math.max(90,Math.min(canvas.height*.38,armWidthPx(h)*4.8));
-  return {wrist,elbow:{x:wrist.x+vx*ext,y:wrist.y+vy*ext}};
+  const palm=h.lm?.[9]||{x:h.cx,y:h.cy-20};
+
+  // Direction from palm toward wrist = toward forearm/body.
+  let dx=wrist.x-palm.x,dy=wrist.y-palm.y;
+  let d=Math.hypot(dx,dy);
+  if(d<3){dx=0;dy=1;d=1}
+  dx/=d;dy/=d;
+
+  // In first-person footage the forearm normally exits toward the lower/side border.
+  if(dy<-.08){dx=-dx;dy=-dy}
+
+  const candidates=[];
+  if(Math.abs(dy)>1e-4){
+    let t=(canvas.height+28-wrist.y)/dy;
+    if(t>0)candidates.push(t);
+    t=(-28-wrist.y)/dy;
+    if(t>0)candidates.push(t);
+  }
+  if(Math.abs(dx)>1e-4){
+    let t=(canvas.width+28-wrist.x)/dx;
+    if(t>0)candidates.push(t);
+    t=(-28-wrist.x)/dx;
+    if(t>0)candidates.push(t);
+  }
+
+  const maxExt=Math.max(120,canvas.height*.62);
+  let t=Math.min(...candidates.filter(v=>isFinite(v)&&v>0),maxExt);
+  if(!isFinite(t))t=maxExt;
+
+  // Prefer a visibly long first-person forearm.
+  t=Math.max(Math.min(maxExt,armWidthPx(h)*4.8),Math.min(t,maxExt));
+
+  return clampPoint({x:wrist.x+dx*t,y:wrist.y+dy*t});
 }
-function armPath(h){
-  const seg=inferredForearm(h);
-  const wrist=h.lm?.[0]||seg.wrist;
-  const palm=h.lm?.[9]||{x:h.cx,y:h.cy};
-  const tip=h.lm?.[12]||palm;
-  // Limit fingertip extension so a bad landmark does not create a giant band.
-  let tx=tip.x,ty=tip.y;
-  const dx=tx-palm.x,dy=ty-palm.y,d=Math.hypot(dx,dy);
-  const maxD=armWidthPx(h)*2.4;
-  if(d>maxD&&d>0){tx=palm.x+dx/d*maxD;ty=palm.y+dy/d*maxD}
-  return [seg.elbow,wrist,palm,{x:tx,y:ty}];
+function handHull(h){
+  // Convex-ish outline through wrist, thumb, fingertips and little-finger side.
+  const ids=[0,1,2,4,8,12,16,20,18,17,13,9,5];
+  const pts=ids.map(i=>h.lm?.[i]).filter(Boolean);
+  if(pts.length<4){
+    return [
+      {x:h.cx-20,y:h.cy-18},{x:h.cx+20,y:h.cy-18},
+      {x:h.cx+22,y:h.cy+20},{x:h.cx-22,y:h.cy+20}
+    ];
+  }
+  return pts.map(p=>({x:p.x,y:p.y}));
 }
-function drawPathCapsule(points,width,fill,stroke=null,line=2){
-  if(!points?.length||width<=0)return;
+function traceSmoothPath(points){
+  if(!points?.length)return;
+  ctx.beginPath();
+  ctx.moveTo(points[0].x,points[0].y);
+  if(points.length===1)return;
+  for(let i=1;i<points.length-1;i++){
+    const p=points[i],n=points[i+1];
+    const mx=(p.x+n.x)/2,my=(p.y+n.y)/2;
+    ctx.quadraticCurveTo(p.x,p.y,mx,my);
+  }
+  const last=points[points.length-1];
+  ctx.lineTo(last.x,last.y);
+}
+function drawArmBand(h,width,fill,outline=null,outlineWidth=2){
+  const entry=forearmEntryPoint(h);
+  const wrist=h.lm?.[0]||{x:h.cx,y:h.cy};
+  const palm=h.lm?.[9]||{x:h.cx,y:h.cy-20};
+  const midTip=h.lm?.[12]||palm;
+
+  // Main arm centerline: border entry -> wrist -> palm -> middle-finger direction.
+  const center=[entry,wrist,palm,midTip];
+
   ctx.save();
   ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
-  for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
-  ctx.strokeStyle=fill;ctx.lineWidth=width;ctx.stroke();
-  if(stroke){
-    ctx.strokeStyle=stroke;ctx.lineWidth=Math.max(1,line);ctx.stroke();
+  traceSmoothPath(center);
+  ctx.strokeStyle=fill;
+  ctx.lineWidth=width;
+  ctx.stroke();
+
+  // Fill the actual hand outline to make it feel like PoseTwin body space,
+  // rather than a simple tube.
+  const hull=handHull(h);
+  ctx.beginPath();
+  ctx.moveTo(hull[0].x,hull[0].y);
+  for(let i=1;i<hull.length;i++)ctx.lineTo(hull[i].x,hull[i].y);
+  ctx.closePath();
+  ctx.fillStyle=fill;
+  ctx.fill();
+
+  // Expanding stroke around hand polygon helps connect fingers/palm to arm band.
+  ctx.strokeStyle=fill;
+  ctx.lineWidth=Math.max(2,width*.36);
+  ctx.stroke();
+
+  if(outline){
+    traceSmoothPath(center);
+    ctx.strokeStyle=outline;
+    ctx.lineWidth=Math.max(1.5,outlineWidth);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(hull[0].x,hull[0].y);
+    for(let i=1;i<hull.length;i++)ctx.lineTo(hull[i].x,hull[i].y);
+    ctx.closePath();
+    ctx.strokeStyle=outline;
+    ctx.lineWidth=Math.max(1.5,outlineWidth);
+    ctx.stroke();
   }
   ctx.restore();
 }
@@ -564,7 +643,7 @@ function nearestHandInfo(){
 function drawVideoPps(){
   if(!P.showVideoPps||!S.hands.length)return;
 
-  const a=P.videoAlpha;
+  const alpha=P.videoAlpha;
   const state=ballStateInfo();
   const nearest=nearestHandInfo();
   const nearestHand=nearest?.h||null;
@@ -573,48 +652,52 @@ function drawVideoPps(){
 
   for(const h of S.hands){
     const core=armWidthPx(h);
-    const yellowW=core*1.5;     // requested PPS = 1.5× body/arm
-    const blueW=core*2.35;      // outer/far-space band
-    const path=armPath(h);
-    const faded=h.stale?.62:1;
+    const yellowW=core*1.50;
+    const blueW=core*2.20;
+    const fade=h.stale?.62:1;
 
-    const ballNearThis=S.ball&&nearestHand===h;
-    const inYellow=ballNearThis&&['pps','work','contact'].includes(state.key);
-    const inRed=ballNearThis&&state.key==='contact';
+    const ballNear=S.ball&&nearestHand===h;
+    const ppsActive=ballNear&&['pps','work','contact'].includes(state.key);
+    const contactActive=ballNear&&state.key==='contact';
 
-    // BLUE outer / far layer first.
-    drawPathCapsule(
-      path,blueW,
-      `rgba(61,142,255,${a*.34*faded})`,
-      `rgba(86,169,255,${Math.min(.98,a*1.7)*faded})`,
-      Math.max(2,canvas.width/620)
+    // Outer BLUE band.
+    drawArmBand(
+      h,
+      blueW,
+      `rgba(70,139,214,${Math.min(.58,alpha*.90)*fade})`,
+      `rgba(110,167,225,${Math.min(.92,alpha*1.65)*fade})`,
+      Math.max(2,canvas.width/600)
     );
 
-    // YELLOW PPS = exactly 1.5× red/core width.
-    drawPathCapsule(
-      path,yellowW,
-      inYellow
-        ? `rgba(255,214,55,${Math.min(.82,a*1.65)*faded})`
-        : `rgba(255,217,92,${a*.60*faded})`,
-      inYellow
-        ? `rgba(255,241,150,${Math.min(1,a*2.25)*faded})`
-        : `rgba(255,221,90,${Math.min(.98,a*1.8)*faded})`,
-      inYellow?Math.max(4,canvas.width/380):Math.max(2.5,canvas.width/520)
+    // YELLOW PPS = 1.5× red/core width.
+    drawArmBand(
+      h,
+      yellowW,
+      ppsActive
+        ? `rgba(255,213,70,${Math.min(.78,alpha*1.55)*fade})`
+        : `rgba(255,216,75,${Math.min(.66,alpha*1.15)*fade})`,
+      ppsActive
+        ? `rgba(255,239,150,${Math.min(1,alpha*2.15)*fade})`
+        : `rgba(255,225,100,${Math.min(.95,alpha*1.75)*fade})`,
+      ppsActive?Math.max(4,canvas.width/390):Math.max(2.5,canvas.width/520)
     );
 
-    // RED arm/hand body core on top.
-    drawPathCapsule(
-      path,core,
-      inRed
-        ? `rgba(255,35,45,${Math.min(.96,a*2.25)*faded})`
-        : `rgba(238,45,52,${Math.min(.90,a*1.9)*faded})`,
-      `rgba(255,91,95,${Math.min(1,a*2.35)*faded})`,
+    // RED body / arm / hand core.
+    drawArmBand(
+      h,
+      core,
+      contactActive
+        ? `rgba(255,48,58,${Math.min(.96,alpha*2.15)*fade})`
+        : `rgba(239,73,76,${Math.min(.90,alpha*1.82)*fade})`,
+      `rgba(255,105,108,${Math.min(1,alpha*2.35)*fade})`,
       Math.max(3,canvas.width/470)
     );
 
-    // Small marker at palm center so the detected hand is obvious.
-    ctx.beginPath();ctx.arc(h.cx,h.cy,Math.max(4,core*.08),0,Math.PI*2);
-    ctx.fillStyle=h.stale?'rgba(255,255,255,.35)':'rgba(255,255,255,.85)';ctx.fill();
+    // Palm center marker.
+    ctx.beginPath();
+    ctx.arc(h.cx,h.cy,Math.max(3.5,core*.055),0,Math.PI*2);
+    ctx.fillStyle=h.stale?'rgba(255,255,255,.38)':'rgba(255,255,255,.78)';
+    ctx.fill();
   }
 
   if(S.ball&&nearestHand){
@@ -624,11 +707,12 @@ function drawVideoPps(){
     ctx.strokeStyle =
       state.key==='contact' ? '#ff333b' :
       state.key==='work' ? '#ff9d4d' :
-      state.key==='pps' ? '#ffda35' :
-      '#56a9ff';
+      state.key==='pps' ? '#ffdc49' :
+      '#70a7e1';
     ctx.lineWidth=Math.max(2.5,canvas.width/560);
     ctx.setLineDash(state.key==='extra'?[8,6]:[]);
-    ctx.stroke();ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   ctx.restore();
