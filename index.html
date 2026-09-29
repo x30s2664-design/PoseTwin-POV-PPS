@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4.3 — Video PPS Overlay</title>
+<title>PoseTwin POV v4.4 — Layered Arm PPS</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4.3</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4.4</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.3 · Video PPS Overlay</span>
+    <span class="badge">v4.4 · Layered Arm PPS</span>
   </div>
 
   <div class="layout">
@@ -79,10 +79,10 @@ input[type=range]{width:100%}
         <div class="small">先暫停在球看得清楚的影格 → 按「指定球」→ 點球中心。之後用局部外觀追蹤，不依賴球類別辨識。</div>
         <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px">
-            <input id="showVideoPps" type="checkbox" checked> 顯示影片近體空間
+            <input id="showVideoPps" type="checkbox" checked> 顯示影片分層空間
           </label>
           <div class="ctrl">
-            <div class="ctrlHead"><label>影片 PPS 透明度</label><output id="oVideoAlpha">35%</output></div>
+            <div class="ctrlHead"><label>空間透明度</label><output id="oVideoAlpha">35%</output></div>
             <input id="videoAlpha" type="range" min="10" max="65" step="1" value="35">
           </div>
         </div>
@@ -97,7 +97,7 @@ input[type=range]{width:100%}
         </div>
         <div class="renderWrap">
           <div id="threeMount"><div style="padding:20px;color:#8da8b7;font-size:13px">3D 模組載入中…</div></div>
-          <div class="renderNote">白色 = 自己 · 青 / 綠 = 左右手 · 黃色透明空間 = 手部近體空間 · 中央橘色 = 雙手工作區 · 球依第一視角估測位置在 3D 空間移動</div>
+          <div class="renderNote">紅色 = 手臂 / 手本體 · 黃色 = 本體外擴 1.5× 近體空間 · 藍色 = 近體空間外層 · 球依第一視角估測位置在 3D 空間移動</div>
         </div>
       </div>
 
@@ -113,10 +113,10 @@ input[type=range]{width:100%}
             <div class="metric"><b id="mState">—</b><span>球狀態</span></div>
           </div>
           <div class="legend" style="margin-top:10px">
-            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>離體空間</b><div class="small">球還在自身動作空間外</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--green)"></span><div><b>可及區</b><div class="small">手可開始介入</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small">球進入手部近體空間</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>接觸 / 觸球</b><div class="small">球接近手部接觸閾值</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>本體 / 手臂</b><div class="small">手臂與手本身</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small">手臂本體外擴 1.5×</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>近體空間外層</b><div class="small">黃色 PPS 外側的離體 / 遠體空間</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>觸球</b><div class="small">球進入紅色本體區</div></div></div>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.3 · video PPS overlay · manual ball tracking · 3D peripersonal-space rendering</div>
+  <div class="footer">PoseTwin POV v4.4 · red body · yellow PPS 1.5× · blue outer space · ball tracking</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -145,7 +145,7 @@ input[type=range]{width:100%}
 const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
-const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.35,showVideoPps:true};
+const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.35,showVideoPps:true,ppsScale:1.5,farScale:2.35};
 const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
 let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
 let FilesetResolver=null, HandLandmarker=null;
@@ -479,64 +479,154 @@ function trackBall(now){
 }
 
 
-function ellipseFillStroke(x,y,rx,ry,fill,stroke,line=2){
-  if(!isFinite(x)||!isFinite(y)||!isFinite(rx)||!isFinite(ry)||rx<=0||ry<=0)return;
-  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
-  if(fill){ctx.fillStyle=fill;ctx.fill()}
-  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke()}
+
+function armWidthPx(h){
+  // Palm MCP width is a stable local scale for the first-person hand.
+  const p5=h.lm?.[5],p17=h.lm?.[17];
+  const palm = (p5&&p17) ? Math.hypot(p5.x-p17.x,p5.y-p17.y) : 36;
+  return Math.max(18,Math.min(95,palm*.72));
 }
-function handPixelRadius(h,meters){
-  return Math.max(10,Math.min(canvas.width*.72,fx()*meters/Math.max(.12,h.z)));
+function inferredForearm(h){
+  // Estimate a forearm continuation from wrist -> palm center, extending toward body/bottom.
+  const w=h.lm?.[0] || {x:h.cx,y:h.cy};
+  const m=h.lm?.[9] || {x:h.cx,y:h.cy-20};
+  let vx=w.x-m.x,vy=w.y-m.y;
+  let len=Math.hypot(vx,vy);
+  if(len<3){vx=0;vy=1;len=1}
+  vx/=len;vy/=len;
+  // Force direction generally toward lower image/body if ambiguous.
+  if(vy<-.15){vx=-vx;vy=-vy}
+  const ext=Math.max(70,Math.min(canvas.height*.34,armWidthPx(h)*4.6));
+  const elbow={x:w.x+vx*ext,y:w.y+vy*ext};
+  return {wrist:w,elbow};
+}
+function drawCapsule(a,b,width,fill,stroke=null,line=2){
+  if(!a||!b||!isFinite(width)||width<=0)return;
+  ctx.save();
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+  ctx.lineTo(b.x,b.y);
+  ctx.strokeStyle=fill;
+  ctx.lineWidth=width;
+  ctx.stroke();
+  if(stroke){
+    ctx.strokeStyle=stroke;
+    ctx.lineWidth=Math.max(1,line);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawHandBlob(h,width,fill,stroke=null,line=2){
+  const pts=[0,1,2,5,9,13,17].map(i=>h.lm?.[i]).filter(Boolean);
+  if(!pts.length)return;
+  const cx=pts.reduce((a,p)=>a+p.x,0)/pts.length;
+  const cy=pts.reduce((a,p)=>a+p.y,0)/pts.length;
+  ctx.save();
+  ctx.fillStyle=fill;
+  ctx.strokeStyle=stroke||fill;
+  ctx.lineWidth=line;
+  ctx.beginPath();
+  ctx.arc(cx,cy,width*.58,0,Math.PI*2);
+  ctx.fill();
+  if(stroke)ctx.stroke();
+  ctx.restore();
+}
+function nearestHandInfo(){
+  if(!S.ball||!S.hands.length)return null;
+  return S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d)[0]||null;
 }
 function drawVideoPps(){
   if(!P.showVideoPps||!S.hands.length)return;
-  const alpha=P.videoAlpha;
+
+  const a=P.videoAlpha;
   const state=ballStateInfo();
-  const nearestHand=S.ball
-    ? S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d)[0]?.h
-    : null;
+  const nearest=nearestHandInfo();
+  const nearestHand=nearest?.h||null;
 
   ctx.save();
 
+  // Layer order: BLUE outer -> YELLOW PPS -> RED body.
+  // This mirrors PoseTwin: inner body space, expanded PPS, then outer/far space.
   for(const h of S.hands){
-    const rr=handPixelRadius(h,P.reach);
-    ellipseFillStroke(h.cx,h.cy,rr,rr*.78,
-      `rgba(66,223,139,${alpha*.20})`,
-      `rgba(66,223,139,${alpha*.72})`,
-      Math.max(1.5,canvas.width/650));
+    const arm=armWidthPx(h);
+    const seg=inferredForearm(h);
+
+    const blueW=arm*P.farScale;
+    const yellowW=arm*P.ppsScale;
+    const redW=arm;
+
+    const ballNearThis = S.ball && nearestHand===h;
+    const inPps = ballNearThis && ['pps','work','contact'].includes(state.key);
+    const inContact = ballNearThis && state.key==='contact';
+
+    // Blue outer layer
+    drawCapsule(
+      seg.elbow, seg.wrist, blueW,
+      `rgba(86,169,255,${a*.26})`,
+      `rgba(86,169,255,${Math.min(.92,a*1.45)})`,
+      Math.max(1.5,canvas.width/700)
+    );
+    drawHandBlob(
+      h, blueW,
+      `rgba(86,169,255,${a*.20})`,
+      `rgba(86,169,255,${Math.min(.86,a*1.25)})`,
+      Math.max(1.5,canvas.width/720)
+    );
+
+    // Yellow PPS = 1.5× arm width
+    drawCapsule(
+      seg.elbow, seg.wrist, yellowW,
+      inPps ? `rgba(255,217,92,${Math.min(.68,a*1.38)})`
+            : `rgba(255,217,92,${a*.46})`,
+      inPps ? `rgba(255,238,145,${Math.min(.98,a*2.0)})`
+            : `rgba(255,217,92,${Math.min(.90,a*1.45)})`,
+      inPps ? Math.max(3,canvas.width/430) : Math.max(2,canvas.width/600)
+    );
+    drawHandBlob(
+      h, yellowW,
+      inPps ? `rgba(255,217,92,${Math.min(.70,a*1.42)})`
+            : `rgba(255,217,92,${a*.48})`,
+      inPps ? `rgba(255,238,145,${Math.min(.98,a*2.0)})`
+            : `rgba(255,217,92,${Math.min(.90,a*1.45)})`,
+      inPps ? Math.max(3,canvas.width/430) : Math.max(2,canvas.width/600)
+    );
+
+    // Red body / arm core
+    drawCapsule(
+      seg.elbow, seg.wrist, redW,
+      inContact ? `rgba(255,70,78,${Math.min(.90,a*1.9)})`
+                : `rgba(255,83,88,${Math.min(.78,a*1.55)})`,
+      `rgba(255,98,104,${Math.min(.98,a*2.2)})`,
+      Math.max(2,canvas.width/560)
+    );
+    drawHandBlob(
+      h, redW,
+      inContact ? `rgba(255,70,78,${Math.min(.90,a*1.9)})`
+                : `rgba(255,83,88,${Math.min(.78,a*1.55)})`,
+      `rgba(255,98,104,${Math.min(.98,a*2.2)})`,
+      Math.max(2,canvas.width/560)
+    );
   }
 
-  for(const h of S.hands){
-    const rp=handPixelRadius(h,P.handPps);
-    const invaded=S.ball&&nearestHand===h&&(state.key==='pps'||state.key==='work'||state.key==='contact');
-    ellipseFillStroke(h.cx,h.cy,rp,rp*.82,
-      invaded?`rgba(255,217,92,${Math.min(.62,alpha*1.25)})`:`rgba(255,217,92,${alpha*.48})`,
-      invaded?`rgba(255,235,140,${Math.min(.95,alpha*2)})`:`rgba(255,217,92,${Math.min(.9,alpha*1.45)})`,
-      invaded?Math.max(3,canvas.width/420):Math.max(2,canvas.width/560));
-  }
-
-  if(S.hands.length===2){
-    const a=S.hands[0],b=S.hands[1];
-    const mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2;
-    const pxSep=Math.hypot(a.cx-b.cx,a.cy-b.cy);
-    const zMid=(a.z+b.z)/2;
-    const base=Math.max(24,Math.min(canvas.width*.38,fx()*Math.max(.17,Math.min(.36,d3(a,b)*.52))/Math.max(.12,zMid)));
-    const active=state.key==='work'||state.key==='contact';
-    ctx.save();ctx.translate(mx,my);ctx.rotate(Math.atan2(b.cy-a.cy,b.cx-a.cx));
-    ellipseFillStroke(0,0,Math.max(base,pxSep*.38),Math.max(22,base*.58),
-      active?`rgba(255,157,77,${Math.min(.62,alpha*1.25)})`:`rgba(255,157,77,${alpha*.36})`,
-      active?`rgba(255,185,110,${Math.min(.95,alpha*2)})`:`rgba(255,157,77,${Math.min(.8,alpha*1.25)})`,
-      active?Math.max(3,canvas.width/420):Math.max(2,canvas.width/600));
-    ctx.restore();
-  }
-
+  // Draw ball relation line to nearest hand.
   if(S.ball&&nearestHand){
-    ctx.beginPath();ctx.moveTo(S.ball.cx,S.ball.cy);ctx.lineTo(nearestHand.cx,nearestHand.cy);
-    ctx.strokeStyle=state.key==='contact'?'#ff6268':state.key==='work'?'#ff9d4d':state.key==='pps'?'#ffd95c':'rgba(255,255,255,.55)';
+    ctx.beginPath();
+    ctx.moveTo(S.ball.cx,S.ball.cy);
+    ctx.lineTo(nearestHand.cx,nearestHand.cy);
+    ctx.strokeStyle =
+      state.key==='contact' ? '#ff5358' :
+      state.key==='work' ? '#ff9d4d' :
+      state.key==='pps' ? '#ffd95c' :
+      state.key==='reach' ? '#56a9ff' :
+      'rgba(255,255,255,.55)';
     ctx.lineWidth=Math.max(2,canvas.width/620);
     ctx.setLineDash(state.key==='extra'?[7,6]:[]);
-    ctx.stroke();ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
+
   ctx.restore();
 }
 
