@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061018">
+<title>PoseTwin POV Extrapersonal Space v2.1</title>
+<style>
+:root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eef7fb;--muted:#8fa8b7;--red:#ff6268;--yellow:#ffd95c;--green:#45e08d;--blue:#56a9ff;--cyan:#66d6ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.app{max-width:1580px;margin:auto;padding:14px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1{margin:0;font-size:clamp(24px,3vw,38px)}.sub{color:var(--muted);margin-top:4px}.badge{font-size:12px;border:1px solid #275b73;background:#0b2634;color:#9fe8ff;border-radius:999px;padding:5px 9px}
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(350px,.8fr);gap:12px}@media(max-width:1000px){.layout{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}.stage{position:relative;background:#000;min-height:420px;display:grid;place-items:center}
+canvas{display:block;width:100%;height:auto;max-height:76vh;object-fit:contain}.hud{position:absolute;left:10px;top:10px;background:rgba(5,13,19,.82);border:1px solid #2b6682;border-radius:12px;padding:9px 11px;backdrop-filter:blur(7px);font-size:12px}.hud b{display:block;font-size:13px}
+.toolbar{padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)}.btn,input[type=file],select{border:1px solid var(--line);background:#0f1e29;color:var(--text);padding:9px 12px;border-radius:11px}.btn{cursor:pointer}.btn.active{border-color:#66d6ff;background:#103f5b;box-shadow:0 0 0 2px rgba(102,214,255,.12) inset}.btn:disabled{opacity:.45;cursor:not-allowed}.seek{flex:1;min-width:180px}
+.side{display:flex;flex-direction:column;gap:12px}.section{padding:14px}.section h2{font-size:17px;margin:0 0 10px}.small{font-size:12px;color:var(--muted);line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.metric{border:1px solid var(--line);border-radius:12px;background:#08131b;padding:10px}.metric b{display:block;font-size:18px}.metric span{font-size:12px;color:var(--muted)}
+.radarWrap{aspect-ratio:1/1;background:#07131b;border:1px solid var(--line);border-radius:12px;overflow:hidden}.radarWrap canvas{width:100%;height:100%}
+.legend{display:grid;gap:8px}.legendRow{display:flex;gap:8px;align-items:flex-start}.dot{width:14px;height:14px;border-radius:50%;margin-top:3px;flex:0 0 auto}
+.ctrl{margin:10px 0}.ctrlHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px}.ctrl output{color:var(--cyan)}input[type=range]{width:100%}
+.tracks,.events{display:grid;gap:7px;max-height:270px;overflow:auto}.item{border:1px solid var(--line);border-radius:10px;padding:8px 9px;background:#08131b;font-size:12px;display:flex;justify-content:space-between;gap:8px}.item .name{font-weight:800}.item .meta{color:var(--muted);margin-top:2px}.pill{font-size:11px;padding:3px 7px;border-radius:999px;border:1px solid #37546a;white-space:nowrap;height:max-content}
+.pill.red{border-color:#8a3940;color:#ff9da2}.pill.yellow{border-color:#78672b;color:#ffe58f}.pill.green{border-color:#2f7553;color:#8effbd}.pill.blue{border-color:#315c86;color:#91c6ff}
+.footer{text-align:center;color:#708897;font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div>
+      <h1>PoseTwin <span style="color:#79dcff">POV Space Intrusion</span></h1>
+      <div class="sub">第一視角離體空間 · 他人 / 物體進入近體空間 · 接近速度 · TTC · 侵入事件</div>
+    </div>
+    <span class="badge">v2.1 · AI + Manual Target</span>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <div class="stage">
+        <canvas id="stage" width="1280" height="720"></canvas>
+        <div class="hud"><b id="status">模型載入中…</b><span id="detail">首次使用會下載 MediaPipe 模型</span></div>
+      </div>
+      <div class="toolbar">
+        <input id="videoFile" type="file" accept="video/*">
+        <button id="play" class="btn" disabled>播放</button>
+        <button id="pause" class="btn" disabled>暫停</button>
+        <input id="seek" class="seek" type="range" min="0" max="1000" value="0" disabled>
+        <span id="time" class="small">00:00 / 00:00</span>
+        <button id="exportCsv" class="btn" disabled>匯出 CSV</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card section">
+        <h2>視點空間雷達</h2>
+        <div class="radarWrap"><canvas id="radar" width="440" height="440"></canvas></div>
+        <div class="small" style="margin-top:8px">CAM = 配戴者視點。每個點的位置由影像水平位置與單眼距離估計換算；人與已知尺寸物體的距離較可信，未知物體屬近似值。</div>
+      </div>
+
+      <div class="card section">
+        <h2>空間狀態</h2>
+        <div class="grid">
+          <div class="metric"><b id="mPeople">0</b><span>他人</span></div>
+          <div class="metric"><b id="mObjects">0</b><span>物體</span></div>
+          <div class="metric"><b id="mNearest">—</b><span>最近目標</span></div>
+          <div class="metric"><b id="mDistance">—</b><span>最近表面距離</span></div>
+          <div class="metric"><b id="mTtc">—</b><span>最短 TTC</span></div>
+          <div class="metric"><b id="mZone">—</b><span>最近空間區</span></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h2>空間分區</h2>
+        <div class="legend">
+          <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>接觸 / 本體邊界</b><div class="small">表面距離 0–<span id="z0Txt">0.30</span> m</div></div></div>
+          <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small"><span id="z0bTxt">0.30</span>–<span id="z1Txt">0.70</span> m</div></div></div>
+          <div class="legendRow"><span class="dot" style="background:var(--green)"></span><div><b>可及 / 過渡區</b><div class="small"><span id="z1bTxt">0.70</span>–<span id="z2Txt">1.20</span> m</div></div></div>
+          <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>離體空間</b><div class="small">&gt; <span id="z2bTxt">1.20</span> m</div></div></div>
+        </div>
+      </div>
+
+
+      <div class="card section">
+        <h2>指定物體（AI 抓不到時）</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="pickManual" class="btn">🎯 點選物體</button>
+          <button id="clearManual" class="btn">清除指定</button>
+        </div>
+        <div class="ctrl"><div class="ctrlHead"><label>初始圈半徑</label><output id="oManualR">32 px</output></div><input id="manualR" type="range" min="10" max="90" step="1" value="32"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>物體真實直徑 / 尺寸</label><output id="oManualSize">0.21 m</output></div><input id="manualSize" type="range" min="0.05" max="1.00" step="0.01" value="0.21"></div>
+        <div id="manualStatus" class="small">若排球或任意物體沒有被 AI 框出：按「點選物體」，再點畫面中的目標中心。程式會以外觀顏色分布做局部追蹤並估算距離。</div>
+      </div>
+
+      <div class="card section">
+        <h2>目標追蹤</h2>
+        <div id="tracks" class="tracks"><div class="item"><div>尚無目標</div></div></div>
+      </div>
+
+      <div class="card section">
+        <h2>侵入事件</h2>
+        <div id="events" class="events"><div class="item"><div>尚無事件</div></div></div>
+      </div>
+
+      <div class="card section">
+        <h2>尺度 / 空間校正</h2>
+        <div class="ctrl"><div class="ctrlHead"><label>水平 FOV</label><output id="oFov">100°</output></div><input id="fov" type="range" min="55" max="160" step="1" value="100"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>假設成人身高</label><output id="oPersonH">1.70 m</output></div><input id="personH" type="range" min="1.40" max="2.00" step="0.01" value="1.70"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>假設肩寬</label><output id="oShoulder">0.45 m</output></div><input id="shoulderW" type="range" min="0.32" max="0.60" step="0.01" value="0.45"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>未知物體代表尺寸</label><output id="oGeneric">0.25 m</output></div><input id="genericSize" type="range" min="0.05" max="0.80" step="0.01" value="0.25"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>本體邊界</label><output id="oZ0">0.30 m</output></div><input id="z0" type="range" min="0.15" max="0.50" step="0.01" value="0.30"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>近體空間上限</label><output id="oZ1">0.70 m</output></div><input id="z1" type="range" min="0.40" max="1.20" step="0.01" value="0.70"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>離體空間起點</label><output id="oZ2">1.20 m</output></div><input id="z2" type="range" min="0.80" max="2.50" step="0.02" value="1.20"></div>
+        <div class="small">人物若被畫面裁切，程式會降低深度信心並偏向以人物寬度估距。未知物體無法由單張 RGB 影像可靠得知真實尺寸，因此其絕對距離僅供相對比較。</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">PoseTwin POV Space Intrusion v2.1 · EfficientDet + manual visual target · monocular scale approximation · TTC</div>
+</div>
+
+<video id="video" playsinline muted style="display:none"></video>
+
+<script type="module">
+import {FilesetResolver,ObjectDetector} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm";
+
+const $=s=>document.querySelector(s);
+const canvas=$('#stage'),ctx=canvas.getContext('2d'),radar=$('#radar'),rctx=radar.getContext('2d'),video=$('#video');
+
+const P={fov:100,personH:1.70,shoulderW:.45,genericSize:.25,z0:.30,z1:.70,z2:1.20};
+const S={obj:null,ready:false,lastRun:0,tracks:[],nextId:1,events:[],rows:[],lastVideoTime:-1,raf:0,manual:null,picking:false,lastManualRun:0,modelError:null};
+const MODEL='https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite';
+
+const SIZE_PRIORS={
+  'sports ball':{size:.21,radius:.105},
+  'bottle':{size:.25,radius:.06},
+  'cup':{size:.10,radius:.05},
+  'cell phone':{size:.15,radius:.04},
+  'book':{size:.24,radius:.04},
+  'backpack':{size:.45,radius:.16},
+  'handbag':{size:.35,radius:.14},
+  'chair':{size:.85,radius:.30},
+  'dog':{size:.65,radius:.25},
+  'cat':{size:.45,radius:.20},
+  'bicycle':{size:1.70,radius:.35}
+};
+
+function setStatus(a,b=''){ $('#status').textContent=a; $('#detail').textContent=b; }
+function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
+function fx(){return canvas.width/(2*Math.tan(P.fov*Math.PI/360))}
+function fy(){return fx()}
+function zone(surface){
+  if(surface<=P.z0)return{key:'body',label:'接觸 / 本體邊界',color:'#ff6268',pill:'red',rank:0};
+  if(surface<=P.z1)return{key:'pps',label:'近體空間',color:'#ffd95c',pill:'yellow',rank:1};
+  if(surface<=P.z2)return{key:'reach',label:'可及 / 過渡區',color:'#45e08d',pill:'green',rank:2};
+  return{key:'extra',label:'離體空間',color:'#56a9ff',pill:'blue',rank:3};
+}
+function p3FromPixel(x,z){return{x:(x-canvas.width/2)*z/fx(),z}}
+function labelOf(d){return d.categories?.[0]?.categoryName||d.categories?.[0]?.displayName||'object'}
+function scoreOf(d){return d.categories?.[0]?.score||0}
+
+async function init(){
+  try{
+    const vision=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
+    S.obj=await ObjectDetector.createFromOptions(vision,{baseOptions:{modelAssetPath:MODEL},runningMode:'VIDEO',scoreThreshold:.15,maxResults:30});
+    S.ready=true;setStatus('模型已就緒','請載入第一視角影片');
+  }catch(e){console.error(e);S.modelError=e?.message||String(e);setStatus('模型載入失敗','仍可使用「點選物體」手動追蹤 · '+S.modelError)}
+}
+
+function estimateDetection(d){
+  const b=d.boundingBox,label=labelOf(d),score=scoreOf(d);
+  const w=Math.max(1,b.width),h=Math.max(1,b.height),cx=b.originX+w/2,cy=b.originY+h/2;
+  const clipped=b.originX<3||b.originY<3||b.originX+w>canvas.width-3||b.originY+h>canvas.height-3;
+  let z, radius, conf='medium', method='generic';
+
+  if(label==='person'){
+    const zh=fy()*P.personH/h;
+    const zw=fx()*P.shoulderW/w;
+    if(clipped){z=zw;method='person-width';conf='low'}
+    else{z=(zh*.65+zw*.35);method='person-height+width';conf='medium'}
+    radius=.25;
+  }else{
+    const prior=SIZE_PRIORS[label];
+    const size=prior?.size||P.genericSize;
+    z=fx()*size/Math.max(w,h);
+    radius=prior?.radius||Math.min(.20,size*.35);
+    method=prior?'known-size':'generic-size';
+    conf=prior?'medium':'low';
+  }
+
+  z=Math.max(.05,Math.min(20,z));
+  const surface=Math.max(0,z-radius);
+  const pos=p3FromPixel(cx,z);
+  return{label,score,box:b,cx,cy,z,surface,x:pos.x,radius,conf,method,clipped};
+}
+
+function iou(a,b){
+  const ax2=a.originX+a.width,ay2=a.originY+a.height,bx2=b.originX+b.width,by2=b.originY+b.height;
+  const x1=Math.max(a.originX,b.originX),y1=Math.max(a.originY,b.originY),x2=Math.min(ax2,bx2),y2=Math.min(ay2,by2);
+  const inter=Math.max(0,x2-x1)*Math.max(0,y2-y1);
+  return inter/Math.max(1,a.width*a.height+b.width*b.height-inter);
+}
+
+function assignTracks(items,now){
+  const prev=S.tracks.map(t=>({...t,used:false}));
+  const out=[];
+  for(const it of items){
+    let best=null,bestCost=1e9;
+    for(const t of prev){
+      if(t.used||t.label!==it.label)continue;
+      const dc=Math.hypot(it.cx-t.cx,it.cy-t.cy)/Math.max(60,Math.max(it.box.width,it.box.height));
+      const iz=iou(it.box,t.box);
+      const cost=dc+(1-iz)*.7;
+      if((iz>.05||dc<1.8)&&cost<bestCost){best=t;bestCost=cost}
+    }
+    const id=best?best.id:S.nextId++;
+    let vz=0;
+    if(best){
+      best.used=true;
+      const dt=Math.max(.02,(now-best.t)/1000);
+      const raw=(it.z-best.z)/dt;
+      vz=(best.vz??raw)*.55+raw*.45;
+    }
+    const zinfo=zone(it.surface);
+    out.push({...it,id,vz,t:now,zone:zinfo,prevZone:best?.zone||null,prevSurface:best?.surface??null});
+  }
+  S.tracks=out;
+}
+
+
+const rawCanvas=document.createElement('canvas'),rawCtx=rawCanvas.getContext('2d',{willReadFrequently:true});
+function ensureRaw(){
+  if(!video.videoWidth)return false;
+  if(rawCanvas.width!==video.videoWidth||rawCanvas.height!==video.videoHeight){rawCanvas.width=video.videoWidth;rawCanvas.height=video.videoHeight}
+  rawCtx.drawImage(video,0,0,rawCanvas.width,rawCanvas.height);return true;
+}
+function qbin(r,g,b){return ((r>>5)<<6)|((g>>5)<<3)|(b>>5)}
+function buildHist(x,y,r){
+  if(!ensureRaw())return null;
+  const x0=Math.max(0,Math.floor(x-r)),y0=Math.max(0,Math.floor(y-r)),x1=Math.min(rawCanvas.width,Math.ceil(x+r)),y1=Math.min(rawCanvas.height,Math.ceil(y+r));
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0),im=rawCtx.getImageData(x0,y0,w,h),hist=new Float32Array(512);
+  let total=0;
+  for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+    const dx=(x0+xx)-x,dy=(y0+yy)-y;if(dx*dx+dy*dy>r*r)continue;
+    const i=(yy*w+xx)*4,bin=qbin(im.data[i],im.data[i+1],im.data[i+2]);hist[bin]++;total++;
+  }
+  if(!total)return null;
+  for(let i=0;i<hist.length;i++)hist[i]/=total;
+  return hist;
+}
+function captureManual(x,y){
+  const r=+$('#manualR').value,hist=buildHist(x,y,r);if(!hist)return;
+  const size=+$('#manualSize').value;
+  const z=fx()*size/(2*r),surface=Math.max(0,z-size/2),zz=zone(surface);
+  S.manual={id:'M1',label:'manual object',score:1,cx:x,cy:y,x:p3FromPixel(x,z).x,z,surface,radius:size/2,box:{originX:x-r,originY:y-r,width:r*2,height:r*2},conf:'manual',method:'manual-visual',vz:0,t:performance.now(),zone:zz,prevZone:zz,hist,pxRadius:r,lastSeen:performance.now()};
+  S.picking=false;$('#pickManual').classList.remove('active');$('#manualStatus').textContent='已指定物體 M1。正在以局部外觀追蹤；若追蹤漂移，可清除後重新點選。';
+}
+function trackManual(now){
+  const m=S.manual;if(!m||now-S.lastManualRun<55||!ensureRaw())return;
+  S.lastManualRun=now;
+  const search=Math.max(70,m.pxRadius*3.0),x0=Math.max(0,Math.floor(m.cx-search)),y0=Math.max(0,Math.floor(m.cy-search));
+  const x1=Math.min(rawCanvas.width,Math.ceil(m.cx+search)),y1=Math.min(rawCanvas.height,Math.ceil(m.cy+search));
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0),im=rawCtx.getImageData(x0,y0,w,h);
+  let sw=0,sx=0,sy=0;
+  const sig=search*.72;
+  for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+    const i=(yy*w+xx)*4,bin=qbin(im.data[i],im.data[i+1],im.data[i+2]),hw=m.hist[bin];
+    if(hw<0.004)continue;
+    const gx=x0+xx,gy=y0+yy,dx=gx-m.cx,dy=gy-m.cy;
+    const prior=Math.exp(-(dx*dx+dy*dy)/(2*sig*sig));
+    const wt=hw*prior;sw+=wt;sx+=gx*wt;sy+=gy*wt;
+  }
+  if(sw<0.12){$('#manualStatus').textContent='指定目標暫時失去追蹤；請暫停後重新點選目標。';return}
+  const nx=sx/sw,ny=sy/sw;
+  let sv=0;
+  for(let yy=0;yy<h;yy+=3)for(let xx=0;xx<w;xx+=3){
+    const i=(yy*w+xx)*4,bin=qbin(im.data[i],im.data[i+1],im.data[i+2]),hw=m.hist[bin];
+    if(hw<0.006)continue;
+    const gx=x0+xx,gy=y0+yy,dx=gx-nx,dy=gy-ny;
+    if(dx*dx+dy*dy<search*search)sv+=(dx*dx+dy*dy)*hw;
+  }
+  let nr=m.pxRadius;
+  if(sw>0.2&&sv>0){
+    const est=Math.sqrt(Math.max(25,sv/(sw*2.2)));
+    nr=Math.max(m.pxRadius*.78,Math.min(m.pxRadius*1.28,est));
+  }
+  nr=Math.max(8,Math.min(130,nr*.25+m.pxRadius*.75));
+  const size=+$('#manualSize').value,prevZ=m.z,prevZone=m.zone,dt=Math.max(.03,(now-m.t)/1000);
+  const z=fx()*size/(2*nr),surface=Math.max(0,z-size/2),zz=zone(surface),vz=(z-prevZ)/dt;
+  m.cx=nx;m.cy=ny;m.pxRadius=nr;m.z=z;m.surface=surface;m.x=p3FromPixel(nx,z).x;m.radius=size/2;m.box={originX:nx-nr,originY:ny-nr,width:nr*2,height:nr*2};m.vz=(m.vz??vz)*.55+vz*.45;m.t=now;m.prevZone=prevZone;m.zone=zz;m.lastSeen=now;
+  if(prevZone&&zz.rank<prevZone.rank){
+    S.events.unshift({time:video.currentTime,msg:`指定物體 M1 進入 ${zz.label}`,zone:zz});S.events=S.events.slice(0,40);renderEvents();
+  }
+}
+function allTargets(){return S.manual?[...S.tracks,S.manual]:S.tracks}
+
+function detect(now){
+  if(!S.ready||now-S.lastRun<90)return;
+  S.lastRun=now;
+  try{
+    const res=S.obj.detectForVideo(video,now);
+    const items=(res.detections||[]).map(estimateDetection)
+      .filter(x=>x.score>=.30)
+      .filter(x=>x.label==='person'||x.box.width*x.box.height<canvas.width*canvas.height*.65);
+    assignTracks(items,now);
+    for(const t of S.tracks)checkEvent(t);
+  }catch(e){console.warn(e)}
+}
+
+function checkEvent(t){
+  if(!t.prevZone)return;
+  if(t.zone.rank<t.prevZone.rank){
+    const kind=t.label==='person'?'他人':'物體';
+    const msg=`${kind} ${t.label} #${t.id} 進入 ${t.zone.label}`;
+    S.events.unshift({time:video.currentTime,msg,zone:t.zone});
+    S.events=S.events.slice(0,40);
+    renderEvents();
+  }
+}
+
+function ttc(t){
+  if(t.vz>=-.03)return null;
+  const v=-t.vz;
+  return t.surface/v;
+}
+
+function draw(){
+  if(!video.videoWidth)return;
+  if(canvas.width!==video.videoWidth||canvas.height!==video.videoHeight){canvas.width=video.videoWidth;canvas.height=video.videoHeight}
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  const cx=canvas.width/2,cy=canvas.height/2;
+  ctx.save();ctx.strokeStyle='rgba(255,255,255,.25)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,canvas.height);ctx.stroke();ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(canvas.width,cy);ctx.stroke();ctx.restore();
+
+
+  if(S.manual){
+    const m=S.manual;
+    ctx.save();ctx.strokeStyle='#ff8df3';ctx.lineWidth=Math.max(3,canvas.width/400);ctx.setLineDash([9,5]);
+    ctx.beginPath();ctx.arc(m.cx,m.cy,m.pxRadius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#ffb6f6';ctx.font='700 '+Math.max(12,canvas.width/78)+'px system-ui';
+    ctx.fillText(`M1 ${m.surface.toFixed(2)}m`,m.cx+m.pxRadius+7,m.cy);
+    ctx.restore();
+  }
+
+  for(const t of allTargets()){
+    const b=t.box,z=t.zone,ttcV=ttc(t);
+    ctx.save();
+    ctx.strokeStyle=z.color;ctx.lineWidth=Math.max(2.5,canvas.width/450);
+    ctx.strokeRect(b.originX,b.originY,b.width,b.height);
+    ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(b.originX,Math.max(0,b.originY-46),Math.min(330,b.width+170),42);
+    ctx.fillStyle=z.color;ctx.font='700 '+Math.max(12,canvas.width/78)+'px system-ui';
+    const title=`${t.label} #${t.id}  ${t.surface.toFixed(2)}m`;
+    ctx.fillText(title,b.originX+5,Math.max(14,b.originY-27));
+    ctx.fillStyle='#fff';ctx.font='600 '+Math.max(11,canvas.width/92)+'px system-ui';
+    const approach=t.vz<-.03?`接近 ${(Math.abs(t.vz)).toFixed(2)}m/s`:(t.vz>.03?`遠離 ${t.vz.toFixed(2)}m/s`:'相對穩定');
+    ctx.fillText(approach+(ttcV&&ttcV<9?` · TTC ${ttcV.toFixed(1)}s`:''),b.originX+5,Math.max(27,b.originY-10));
+    ctx.restore();
+  }
+  drawRadar();updateUI();
+}
+
+function drawRadar(){
+  const w=radar.width,h=radar.height,cx=w/2,cy=h-28,maxR=Math.max(P.z2*1.8,2.5),scale=Math.min(w*.43,h*.80)/maxR;
+  rctx.clearRect(0,0,w,h);rctx.fillStyle='#07131b';rctx.fillRect(0,0,w,h);
+
+  const rings=[{r:P.z2,c:'#56a9ff'},{r:P.z1,c:'#45e08d'},{r:P.z0,c:'#ffd95c'}];
+  for(const q of rings){
+    rctx.beginPath();rctx.arc(cx,cy,q.r*scale,Math.PI,Math.PI*2);rctx.strokeStyle=q.c;rctx.globalAlpha=.48;rctx.lineWidth=2;rctx.stroke();
+  }
+  rctx.globalAlpha=1;rctx.fillStyle='#fff';rctx.textAlign='center';rctx.font='12px system-ui';rctx.fillText('CAM',cx,cy+17);
+
+  for(const t of allTargets()){
+    const z=Math.min(maxR,t.z),x=cx+t.x*scale,y=cy-z*scale;
+    rctx.beginPath();rctx.arc(x,y,t.label==='person'?9:7,0,Math.PI*2);rctx.fillStyle=t.zone.color;rctx.fill();
+    rctx.fillStyle='#fff';rctx.font='10px system-ui';rctx.fillText((t.label==='person'?'P':'O')+t.id,x,y-11);
+  }
+}
+
+function renderTracks(){
+  const el=$('#tracks');
+  const targets=allTargets();if(!targets.length){el.innerHTML='<div class="item"><div>尚無目標</div></div>';return}
+  const arr=[...targets].sort((a,b)=>a.surface-b.surface);
+  el.innerHTML=arr.map(t=>{
+    const tt=ttc(t),kind=t.label==='person'?'他人':'物體';
+    const conf=t.conf==='low'?'低':'中';
+    return `<div class="item"><div><div class="name">${kind} · ${t.label} #${t.id}</div><div class="meta">表面 ${t.surface.toFixed(2)}m · ${t.vz<-.03?'接近':'非接近'} ${Math.abs(t.vz).toFixed(2)}m/s${tt&&tt<15?' · TTC '+tt.toFixed(1)+'s':''} · 深度信心 ${conf}</div></div><span class="pill ${t.zone.pill}">${t.zone.label}</span></div>`;
+  }).join('');
+}
+
+function renderEvents(){
+  const el=$('#events');
+  if(!S.events.length){el.innerHTML='<div class="item"><div>尚無事件</div></div>';return}
+  el.innerHTML=S.events.map(e=>`<div class="item"><div><div class="name">${fmt(e.time)}</div><div class="meta">${e.msg}</div></div><span class="pill ${e.zone.pill}">${e.zone.label}</span></div>`).join('');
+}
+
+function updateUI(){
+  const targets=allTargets(),people=targets.filter(t=>t.label==='person'),objects=targets.filter(t=>t.label!=='person');
+  $('#mPeople').textContent=people.length;$('#mObjects').textContent=objects.length;
+  const nearest=[...targets].sort((a,b)=>a.surface-b.surface)[0];
+  $('#mNearest').textContent=nearest?`${nearest.label} #${nearest.id}`:'—';
+  $('#mDistance').textContent=nearest?nearest.surface.toFixed(2)+' m':'—';
+  $('#mZone').textContent=nearest?nearest.zone.label:'—';
+  const ttcs=targets.map(ttc).filter(v=>v&&v>0&&v<20);
+  $('#mTtc').textContent=ttcs.length?Math.min(...ttcs).toFixed(1)+' s':'—';
+  renderTracks();
+
+  for(const t of targets){
+    S.rows.push({
+      time:+video.currentTime.toFixed(3),id:t.id,label:t.label,score:+t.score.toFixed(3),
+      center_z:+t.z.toFixed(3),surface_m:+t.surface.toFixed(3),x_m:+t.x.toFixed(3),
+      velocity_mps:+t.vz.toFixed(3),ttc_s:ttc(t)?+ttc(t).toFixed(3):'',zone:t.zone.label,confidence:t.conf
+    });
+  }
+  if(targets.length){$('#exportCsv').disabled=false}
+  if(S.rows.length>50000)S.rows.splice(0,S.rows.length-50000);
+}
+
+function loop(now){
+  if(video.readyState>=2&&video.currentTime!==S.lastVideoTime){
+    S.lastVideoTime=video.currentTime;
+    detect(now);trackManual(now);draw();
+    $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;
+    $('#time').textContent=fmt(video.currentTime)+' / '+fmt(video.duration);
+  }
+  S.raf=requestAnimationFrame(loop);
+}
+
+$('#videoFile').addEventListener('change',e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  video.src=URL.createObjectURL(f);
+  video.onloadedmetadata=()=>{
+    canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+    $('#play').disabled=false;$('#pause').disabled=false;$('#seek').disabled=false;
+    S.tracks=[];S.events=[];S.rows=[];S.nextId=1;S.manual=null;S.picking=false;
+    setStatus(S.ready?'影片已載入':'等待模型…',video.videoWidth+'×'+video.videoHeight+' · '+fmt(video.duration));
+    draw();
+  };
+});
+$('#play').onclick=()=>video.play();
+$('#pause').onclick=()=>video.pause();
+$('#seek').addEventListener('input',()=>{if(video.duration)video.currentTime=video.duration*(+$('#seek').value/1000)});
+video.addEventListener('play',()=>setStatus(S.ready?'分析中':'影片播放中',S.ready?'AI + 指定物體空間侵入':'AI 模型未就緒；仍可使用「點選物體」'));
+video.addEventListener('pause',()=>setStatus('已暫停',S.ready?'可拖曳時間軸查看':'AI 模型未就緒；可用「點選物體」手動分析'));
+
+function sync(){
+  P.fov=+$('#fov').value;P.personH=+$('#personH').value;P.shoulderW=+$('#shoulderW').value;P.genericSize=+$('#genericSize').value;
+  P.z0=+$('#z0').value;P.z1=+$('#z1').value;P.z2=+$('#z2').value;
+  if(P.z1<P.z0+.05){P.z1=P.z0+.05;$('#z1').value=P.z1}
+  if(P.z2<P.z1+.10){P.z2=P.z1+.10;$('#z2').value=P.z2}
+  $('#oFov').value=P.fov+'°';$('#oPersonH').value=P.personH.toFixed(2)+' m';$('#oShoulder').value=P.shoulderW.toFixed(2)+' m';$('#oGeneric').value=P.genericSize.toFixed(2)+' m';
+  $('#oZ0').value=P.z0.toFixed(2)+' m';$('#oZ1').value=P.z1.toFixed(2)+' m';$('#oZ2').value=P.z2.toFixed(2)+' m';
+  $('#z0Txt').textContent=$('#z0bTxt').textContent=P.z0.toFixed(2);$('#z1Txt').textContent=$('#z1bTxt').textContent=P.z1.toFixed(2);$('#z2Txt').textContent=$('#z2bTxt').textContent=P.z2.toFixed(2);
+  drawRadar();
+}
+for(const id of ['fov','personH','shoulderW','genericSize','z0','z1','z2'])$('#'+id).addEventListener('input',sync);
+sync();
+
+
+$('#manualR').addEventListener('input',()=>$('#oManualR').value=$('#manualR').value+' px');
+$('#manualSize').addEventListener('input',()=>$('#oManualSize').value=(+$('#manualSize').value).toFixed(2)+' m');
+$('#pickManual').onclick=()=>{
+  S.picking=!S.picking;$('#pickManual').classList.toggle('active',S.picking);
+  $('#manualStatus').textContent=S.picking?'請直接點影片畫面中要追蹤的物體中心。':'已取消點選。';
+};
+$('#clearManual').onclick=()=>{S.manual=null;S.picking=false;$('#pickManual').classList.remove('active');$('#manualStatus').textContent='已清除指定物體。';};
+canvas.addEventListener('pointerdown',e=>{
+  if(!S.picking||!video.videoWidth)return;
+  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;
+  captureManual(x,y);draw();
+});
+
+$('#exportCsv').onclick=()=>{
+  if(!S.rows.length)return;
+  const cols=['time','id','label','score','center_z','surface_m','x_m','velocity_mps','ttc_s','zone','confidence'];
+  const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';
+  const csv=cols.join(',')+'\n'+S.rows.map(r=>cols.map(c=>esc(r[c])).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PoseTwin-POV-Space-Intrusion.csv';a.click();URL.revokeObjectURL(a.href);
+};
+
+init();drawRadar();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
