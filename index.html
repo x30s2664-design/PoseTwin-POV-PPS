@@ -4,29 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV SpaceTwin v3.0</title>
+<title>PoseTwin POV v4 — Ball-Centered Peripersonal Space</title>
 <style>
-:root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
-.app{max-width:1700px;margin:auto;padding:14px}
+:root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.app{max-width:1720px;margin:auto;padding:14px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4px}.badge{font-size:12px;border:1px solid #275b73;background:#0b2634;color:#a4eaff;border-radius:999px;padding:5px 9px}
-.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(520px,1fr);gap:12px}@media(max-width:1100px){.layout{grid-template-columns:1fr}}
+h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4px}
+.badge{font-size:12px;border:1px solid #275b73;background:#0b2634;color:#a4eaff;border-radius:999px;padding:5px 9px}
+.layout{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(560px,1fr);gap:12px}
+@media(max-width:1120px){.layout{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .stage{position:relative;background:#000;min-height:430px;display:grid;place-items:center}
 #videoCanvas{display:block;width:100%;height:auto;max-height:74vh;object-fit:contain}
 .hud{position:absolute;left:10px;top:10px;background:rgba(5,13,19,.84);border:1px solid #2c6681;border-radius:12px;padding:9px 11px;font-size:12px;backdrop-filter:blur(7px)}
-.hud b{display:block;font-size:13px}.toolbar{padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)}
-.btn,input[type=file],select{border:1px solid var(--line);background:#0f1e29;color:var(--text);padding:9px 12px;border-radius:11px}.btn{cursor:pointer}.btn.active{border-color:#66d6ff;background:#103f5b}.btn:disabled{opacity:.45;cursor:not-allowed}.seek{flex:1;min-width:180px}
-.right{display:flex;flex-direction:column;gap:12px}.renderCard{position:relative}.renderHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
-.renderHead h2{margin:0;font-size:18px}.renderWrap{height:min(68vh,720px);min-height:500px;background:radial-gradient(circle at 50% 35%,#122534 0,#07131b 55%,#050d13 100%);position:relative}
-#threeMount{position:absolute;inset:0}.renderNote{position:absolute;left:12px;bottom:12px;background:rgba(5,13,19,.76);border:1px solid #29475a;border-radius:10px;padding:8px 10px;font-size:11px;color:#a9c0cd}
-.controls{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}@media(max-width:700px){.controls{grid-template-columns:1fr}}
-.section{padding:14px}.section h2{font-size:16px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.metric{padding:10px;border:1px solid var(--line);border-radius:12px;background:#08131b}
-.metric b{display:block;font-size:18px}.metric span{font-size:12px;color:var(--muted)}.small{font-size:12px;color:var(--muted);line-height:1.55}
-.ctrl{margin:10px 0}.ctrlHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px}.ctrl output{color:var(--cyan)}input[type=range]{width:100%}
+.hud b{display:block;font-size:13px}
+.toolbar{padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)}
+.btn,input[type=file],select{border:1px solid var(--line);background:#0f1e29;color:var(--text);padding:9px 12px;border-radius:11px}
+.btn{cursor:pointer}.btn.active{border-color:#66d6ff;background:#103f5b}.btn:disabled{opacity:.45;cursor:not-allowed}
+.seek{flex:1;min-width:180px}
+.right{display:flex;flex-direction:column;gap:12px}
+.renderCard{position:relative}.renderHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.renderHead h2{margin:0;font-size:18px}
+.renderWrap{height:min(68vh,730px);min-height:520px;background:radial-gradient(circle at 50% 36%,#132736 0,#07131b 56%,#050d13 100%);position:relative}
+#threeMount{position:absolute;inset:0}
+.renderNote{position:absolute;left:12px;bottom:12px;background:rgba(5,13,19,.78);border:1px solid #29475a;border-radius:10px;padding:8px 10px;font-size:11px;color:#a9c0cd;max-width:92%}
+.controls{display:grid;grid-template-columns:1.12fr .88fr;gap:12px}
+@media(max-width:760px){.controls{grid-template-columns:1fr}}
+.section{padding:14px}.section h2{font-size:16px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.metric{padding:10px;border:1px solid var(--line);border-radius:12px;background:#08131b}
+.metric b{display:block;font-size:18px}.metric span{font-size:12px;color:var(--muted)}
+.small{font-size:12px;color:var(--muted);line-height:1.55}
+.ctrl{margin:10px 0}.ctrlHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px}.ctrl output{color:var(--cyan)}
+input[type=range]{width:100%}
 .legend{display:grid;gap:7px}.legendRow{display:flex;gap:8px;align-items:flex-start}.dot{width:13px;height:13px;border-radius:50%;margin-top:3px;flex:0 0 auto}
-.events{display:grid;gap:6px;max-height:200px;overflow:auto}.event{padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#08131b;font-size:12px}
+.events{display:grid;gap:6px;max-height:220px;overflow:auto}.event{padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#08131b;font-size:12px}
+.statePill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid #36556a;background:#0a202b;font-size:12px}
 .targetBtns{display:flex;gap:8px;flex-wrap:wrap}.footer{text-align:center;color:#708897;font-size:11px;padding:10px}
 </style>
 </head>
@@ -34,18 +49,19 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4p
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV SpaceTwin</span></h1>
-      <div class="sub">第一視角 → 3D 渲染 · 自身近體空間 · 他人侵入 · 物體侵入 · 雙手延伸</div>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4</span></h1>
+      <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v3.0 · Rendered Spatial Twin</span>
+    <span class="badge">v4.0 · PoseTwin-style Spatial Render</span>
   </div>
 
   <div class="layout">
     <div class="card">
       <div class="stage">
         <canvas id="videoCanvas" width="1280" height="720"></canvas>
-        <div class="hud"><b id="status">模型載入中…</b><span id="detail">影片只作感測來源，右側顯示空間 Twin</span></div>
+        <div class="hud"><b id="status">模型載入中…</b><span id="detail">影片只作感測來源；右側為 PoseTwin 空間模擬</span></div>
       </div>
+
       <div class="toolbar">
         <input id="videoFile" type="file" accept="video/*">
         <button id="play" class="btn" disabled>播放</button>
@@ -53,57 +69,65 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4p
         <input id="seek" class="seek" type="range" min="0" max="1000" value="0" disabled>
         <span id="time" class="small">00:00 / 00:00</span>
       </div>
+
       <div class="section">
         <div class="targetBtns">
-          <button id="pickPerson" class="btn">👤 指定他人</button>
-          <button id="pickObject" class="btn">⚪ 指定物體</button>
-          <button id="clearManual" class="btn">清除指定</button>
+          <button id="pickBall" class="btn">🏐 指定球</button>
+          <button id="clearBall" class="btn">清除球追蹤</button>
         </div>
-        <div class="small" style="margin-top:8px">AI 沒抓到時直接點影片：指定他人請點胸口中心；指定物體請點物體中心。自己的雙手不會算成他人。</div>
+        <div class="ctrl"><div class="ctrlHead"><label>指定球初始圈半徑</label><output id="oPickR">38 px</output></div><input id="pickR" type="range" min="14" max="110" step="1" value="38"></div>
+        <div class="small">先暫停在球看得清楚的影格 → 按「指定球」→ 點球中心。之後用局部外觀追蹤，不依賴球類別辨識。</div>
       </div>
     </div>
 
     <div class="right">
       <div class="card renderCard">
-        <div class="renderHead"><h2>3D 近體空間 Twin</h2><span class="small">拖曳旋轉 · 滾輪縮放</span></div>
-        <div class="renderWrap"><div id="threeMount"></div><div class="renderNote">中央白色人偶 = 自己 · 紅/黃/綠透明殼 = 本體/近體/可及區 · 外部人/球會依估測距離移動</div></div>
+        <div class="renderHead">
+          <h2>PoseTwin 近體空間模擬</h2>
+          <span id="renderState" class="statePill">等待球 / 手</span>
+        </div>
+        <div class="renderWrap">
+          <div id="threeMount"></div>
+          <div class="renderNote">白色 = 自己 · 青 / 綠 = 左右手 · 黃色透明空間 = 手部近體空間 · 中央橘色 = 雙手工作區 · 球依第一視角估測位置在 3D 空間移動</div>
+        </div>
       </div>
 
       <div class="controls">
         <div class="card section">
-          <h2>空間狀態</h2>
+          <h2>即時分析</h2>
           <div class="grid">
             <div class="metric"><b id="mHands">0</b><span>自己的手</span></div>
-            <div class="metric"><b id="mPeople">0</b><span>他人</span></div>
-            <div class="metric"><b id="mObjects">0</b><span>物體</span></div>
-            <div class="metric"><b id="mNearest">—</b><span>最近侵入者</span></div>
-            <div class="metric"><b id="mDistance">—</b><span>最近距離</span></div>
-            <div class="metric"><b id="mZone">—</b><span>所在空間</span></div>
+            <div class="metric"><b id="mBall">—</b><span>球距視點</span></div>
+            <div class="metric"><b id="mLeft">—</b><span>球 ↔ 左手</span></div>
+            <div class="metric"><b id="mRight">—</b><span>球 ↔ 右手</span></div>
+            <div class="metric"><b id="mWork">—</b><span>雙手工作區</span></div>
+            <div class="metric"><b id="mState">—</b><span>球狀態</span></div>
           </div>
           <div class="legend" style="margin-top:10px">
-            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>本體 / 接觸區</b><div class="small">極近距離</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small">身體周圍防禦 / 動作空間</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--green)"></span><div><b>可及區</b><div class="small">手臂可介入的過渡空間</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>離體空間</b><div class="small">尚未進入自身動作邊界</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>離體空間</b><div class="small">球還在自身動作空間外</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--green)"></span><div><b>可及區</b><div class="small">手可開始介入</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small">球進入手部近體空間</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>接觸 / 觸球</b><div class="small">球接近手部接觸閾值</div></div></div>
           </div>
         </div>
 
         <div class="card section">
           <h2>空間參數</h2>
           <div class="ctrl"><div class="ctrlHead"><label>水平 FOV</label><output id="oFov">100°</output></div><input id="fov" type="range" min="55" max="160" value="100"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>近體空間半徑</label><output id="oPps">0.75m</output></div><input id="pps" type="range" min="0.40" max="1.20" step="0.01" value="0.75"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>可及區半徑</label><output id="oReach">1.25m</output></div><input id="reach" type="range" min="0.80" max="2.00" step="0.01" value="1.25"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>物體尺寸</label><output id="oObjSize">0.21m</output></div><input id="objSize" type="range" min="0.05" max="0.80" step="0.01" value="0.21"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>手掌 MCP 寬</label><output id="oPalm">8.5 cm</output></div><input id="palmCm" type="range" min="6.0" max="11.0" step="0.1" value="8.5"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>球直徑</label><output id="oBallSize">21.0 cm</output></div><input id="ballCm" type="range" min="12" max="30" step=".5" value="21"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>手部 PPS 半徑</label><output id="oHandPps">0.34 m</output></div><input id="handPps" type="range" min=".18" max=".60" step=".01" value=".34"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>觸球閾值</label><output id="oContact">0.14 m</output></div><input id="contact" type="range" min=".06" max=".24" step=".01" value=".14"></div>
         </div>
       </div>
 
       <div class="card section">
-        <h2>侵入事件</h2>
-        <div id="events" class="events"><div class="event">尚無侵入事件</div></div>
+        <h2>動作事件</h2>
+        <div id="events" class="events"><div class="event">尚無球事件</div></div>
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV SpaceTwin v3.0 · Three.js rendered twin · HandLandmarker · EfficientDet · manual target fallback</div>
+  <div class="footer">PoseTwin POV v4.0 · HandLandmarker + manual visual ball tracking + 3D peripersonal-space rendering</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -111,223 +135,320 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4p
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js";
 import {OrbitControls} from "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/controls/OrbitControls.js";
-import {FilesetResolver,HandLandmarker,ObjectDetector} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm";
+import {FilesetResolver,HandLandmarker} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm";
 
 const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
-const P={fov:100,pps:.75,reach:1.25,objSize:.21,body:.30,personH:1.70,shoulder:.45};
-const S={hand:null,obj:null,ready:false,hands:[],targets:[],manual:[],pick:null,nextId:1,lastT:-1,lastAI:0,events:[],raf:0};
+const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62};
+const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0};
+
+function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b }
+function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
+function fx(){return canvas.width/(2*Math.tan(P.fov*Math.PI/360))}
+function pxToX(px,z){return(px-canvas.width/2)*z/fx()}
+function pxToY(py,z){return-(py-canvas.height*.54)*z/fx()}
+function d3(a,b){return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z)}
 
 // ---------- THREE ----------
 const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x07131b,5,12);
-const cam3=new THREE.PerspectiveCamera(46,1,.1,50);cam3.position.set(3.6,2.8,4.8);
+scene.fog=new THREE.Fog(0x07131b,5.5,13);
+const cam3=new THREE.PerspectiveCamera(44,1,.1,50);cam3.position.set(3.1,2.55,4.5);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));mount.appendChild(renderer.domElement);
-const controls=new OrbitControls(cam3,renderer.domElement);controls.target.set(0,1.0,0);controls.enableDamping=true;
-scene.add(new THREE.HemisphereLight(0xbfe9ff,0x14202a,2.4));
-const dl=new THREE.DirectionalLight(0xffffff,2.5);dl.position.set(3,5,3);scene.add(dl);
-const floor=new THREE.Mesh(new THREE.CircleGeometry(4.4,80),new THREE.MeshStandardMaterial({color:0x0a1821,roughness:.9,metalness:.05}));floor.rotation.x=-Math.PI/2;floor.position.y=0;scene.add(floor);
-const grid=new THREE.GridHelper(8,16,0x31576b,0x18303d);grid.position.y=.003;scene.add(grid);
+const controls=new OrbitControls(cam3,renderer.domElement);controls.target.set(0,1.1,-.65);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xc9efff,0x15212b,2.6));
+const dl=new THREE.DirectionalLight(0xffffff,2.6);dl.position.set(4,6,3);scene.add(dl);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(4.6,96),new THREE.MeshStandardMaterial({color:0x0a1821,roughness:.92}));floor.rotation.x=-Math.PI/2;scene.add(floor);
+const grid=new THREE.GridHelper(8,16,0x31576b,0x18303d);grid.position.y=.004;scene.add(grid);
 
-function mat(color,opacity=1){return new THREE.MeshStandardMaterial({color,roughness:.55,metalness:.05,transparent:opacity<1,opacity,depthWrite:opacity>.55,side:THREE.DoubleSide})}
+function mat(color,opacity=1){
+  return new THREE.MeshStandardMaterial({color,roughness:.48,metalness:.05,transparent:opacity<1,opacity,depthWrite:opacity>.55,side:THREE.DoubleSide});
+}
+function basic(color,opacity=.15){return new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide})}
 function limb(a,b,r,color){
   const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5),len=a.distanceTo(b);
-  const g=new THREE.CylinderGeometry(r,r,len,12),m=new THREE.Mesh(g,mat(color));
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,12),mat(color));
   m.position.copy(mid);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3().subVectors(b,a).normalize());return m;
 }
-function makeMannequin(color=0xe8f5fb,scale=1){
-  const g=new THREE.Group();
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.11*scale,20,16),mat(color));head.position.set(0,1.72*scale,0);g.add(head);
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.18*scale,.48*scale,6,12),mat(color));torso.position.set(0,1.15*scale,0);g.add(torso);
-  const shL=new THREE.Vector3(-.22*scale,1.43*scale,0),shR=new THREE.Vector3(.22*scale,1.43*scale,0);
-  const elL=new THREE.Vector3(-.36*scale,1.12*scale,.03),elR=new THREE.Vector3(.36*scale,1.12*scale,.03);
-  const wrL=new THREE.Vector3(-.34*scale,.86*scale,.12),wrR=new THREE.Vector3(.34*scale,.86*scale,.12);
-  g.add(limb(shL,elL,.055*scale,color),limb(elL,wrL,.048*scale,color),limb(shR,elR,.055*scale,color),limb(elR,wrR,.048*scale,color));
-  const hipL=new THREE.Vector3(-.11*scale,.82*scale,0),hipR=new THREE.Vector3(.11*scale,.82*scale,0);
-  const knL=new THREE.Vector3(-.14*scale,.43*scale,.03),knR=new THREE.Vector3(.14*scale,.43*scale,.03);
-  const ftL=new THREE.Vector3(-.14*scale,.06*scale,.08),ftR=new THREE.Vector3(.14*scale,.06*scale,.08);
-  g.add(limb(hipL,knL,.065*scale,color),limb(knL,ftL,.055*scale,color),limb(hipR,knR,.065*scale,color),limb(knR,ftR,.055*scale,color));
+function makeSelf(){
+  const g=new THREE.Group(),c=0xecf8ff;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.11,20,16),mat(c));head.position.set(0,1.72,.12);g.add(head);
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.18,.50,6,12),mat(c));torso.position.set(0,1.14,0);g.add(torso);
+  const shL=new THREE.Vector3(-.22,1.43,0),shR=new THREE.Vector3(.22,1.43,0);
+  const elL=new THREE.Vector3(-.31,1.18,-.16),elR=new THREE.Vector3(.31,1.18,-.16);
+  const wrL=new THREE.Vector3(-.30,1.02,-.42),wrR=new THREE.Vector3(.30,1.02,-.42);
+  g.add(limb(shL,elL,.055,c),limb(elL,wrL,.048,c),limb(shR,elR,.055,c),limb(elR,wrR,.048,c));
+  const hipL=new THREE.Vector3(-.11,.82,0),hipR=new THREE.Vector3(.11,.82,0);
+  const knL=new THREE.Vector3(-.14,.43,.04),knR=new THREE.Vector3(.14,.43,.04);
+  const ftL=new THREE.Vector3(-.14,.06,.10),ftR=new THREE.Vector3(.14,.06,.10);
+  g.add(limb(hipL,knL,.064,c),limb(knL,ftL,.054,c),limb(hipR,knR,.064,c),limb(knR,ftR,.054,c));
   return g;
 }
-const self=makeMannequin(0xeaf7ff,1);scene.add(self);
-const shells=new THREE.Group();scene.add(shells);
-function makeShell(radius,color,opacity,y=.88){
-  const mesh=new THREE.Mesh(new THREE.SphereGeometry(radius,48,24,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color,transparent:true,opacity,wireframe:false,side:THREE.DoubleSide,depthWrite:false}));
-  mesh.scale.y=.85;mesh.position.y=y;return mesh;
-}
-let shellBody,shellPps,shellReach;
-function rebuildShells(){
-  shells.clear();
-  shellReach=makeShell(P.reach,0x42df8b,.10);shellPps=makeShell(P.pps,0xffd95c,.14);shellBody=makeShell(P.body,0xff6268,.19);
-  shells.add(shellReach,shellPps,shellBody);
-}
-rebuildShells();
+const self=makeSelf();scene.add(self);
 
-const targetRoot=new THREE.Group();scene.add(targetRoot);
-const handRoot=new THREE.Group();scene.add(handRoot);
-function clearGroup(g){while(g.children.length){const c=g.children.pop();c.geometry?.dispose?.();c.material?.dispose?.()}}
+const fieldRoot=new THREE.Group(),handRoot=new THREE.Group(),ballRoot=new THREE.Group();
+scene.add(fieldRoot,handRoot,ballRoot);
 
-function zone(d){if(d<=P.body)return{key:'body',label:'本體區',color:0xff6268,css:'#ff6268',rank:0};if(d<=P.pps)return{key:'pps',label:'近體空間',color:0xffd95c,css:'#ffd95c',rank:1};if(d<=P.reach)return{key:'reach',label:'可及區',color:0x42df8b,css:'#42df8b',rank:2};return{key:'extra',label:'離體空間',color:0x56a9ff,css:'#56a9ff',rank:3}}
-function renderSpatialTwin(){
-  clearGroup(targetRoot);clearGroup(handRoot);
-  for(const h of S.hands){
-    const m=new THREE.Mesh(new THREE.SphereGeometry(.065,18,14),mat(h.side==='Left'?0x66d6ff:0x42df8b));
-    m.position.set(h.x,1.12,-h.z);handRoot.add(m);
-  }
-  for(const t of S.targets){
-    const z=zone(t.surface);
-    if(t.kind==='person'){
-      const man=makeMannequin(z.color,.82);man.position.set(t.x,0,-t.z);targetRoot.add(man);
-    }else{
-      const sph=new THREE.Mesh(new THREE.SphereGeometry(Math.max(.07,t.radius),24,18),mat(z.color));
-      sph.position.set(t.x,1.05,-t.z);targetRoot.add(sph);
-    }
-    const ring=new THREE.Mesh(new THREE.RingGeometry(.13,.155,32),new THREE.MeshBasicMaterial({color:z.color,side:THREE.DoubleSide,transparent:true,opacity:.8}));
-    ring.rotation.x=-Math.PI/2;ring.position.set(t.x,.015,-t.z);targetRoot.add(ring);
+function clearGroup(g){
+  while(g.children.length){
+    const c=g.children.pop();
+    c.traverse?.(o=>{o.geometry?.dispose?.();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose?.());else o.material.dispose?.()}});
   }
 }
 
-function resize3(){const r=mount.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam3.aspect=r.width/r.height;cam3.updateProjectionMatrix()}
+function resize3(){
+  const r=mount.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam3.aspect=Math.max(.1,r.width/r.height);cam3.updateProjectionMatrix();
+}
 new ResizeObserver(resize3).observe(mount);resize3();
-function animate3(){controls.update();renderer.render(scene,cam3);requestAnimationFrame(animate3)}animate3();
+function loop3(){controls.update();renderer.render(scene,cam3);requestAnimationFrame(loop3)}loop3();
 
-// ---------- CV ----------
+function handScenePos(h){
+  // render in front of the self mannequin; -Z means forward into the scene.
+  return new THREE.Vector3(h.x,1.12+h.y,-Math.max(.12,h.z));
+}
+function buildField(){
+  clearGroup(fieldRoot);clearGroup(handRoot);clearGroup(ballRoot);
+
+  // Torso-centered PPS base, PoseTwin-like spatial envelope.
+  const torsoPps=new THREE.Mesh(new THREE.SphereGeometry(.58,40,26),basic(0xffd95c,.075));
+  torsoPps.scale.set(1.0,1.12,1.25);torsoPps.position.set(0,1.12,-.25);fieldRoot.add(torsoPps);
+
+  const handMeshes=[];
+  for(const h of S.hands){
+    const hp=handScenePos(h),hc=h.side==='Left'?0x66d6ff:0x42df8b;
+    const node=new THREE.Mesh(new THREE.SphereGeometry(.07,20,14),mat(hc));node.position.copy(hp);handRoot.add(node);
+
+    const halo=new THREE.Mesh(new THREE.SphereGeometry(P.handPps,32,20),basic(0xffd95c,.14));halo.position.copy(hp);halo.scale.set(1.0,.82,1.14);fieldRoot.add(halo);
+
+    const reach=new THREE.Mesh(new THREE.SphereGeometry(P.reach,28,18),basic(0x42df8b,.045));reach.position.copy(hp);reach.scale.set(1.0,.70,1.10);fieldRoot.add(reach);
+    handMeshes.push({h,p:hp});
+  }
+
+  // Dynamic bimanual workspace between left and right hands.
+  if(handMeshes.length===2){
+    const a=handMeshes[0].p,b=handMeshes[1].p,mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
+    const sep=a.distanceTo(b);
+    const ws=new THREE.Mesh(new THREE.SphereGeometry(Math.max(.16,Math.min(.38,sep*.55)),32,20),basic(0xffa94d,.17));
+    ws.position.copy(mid);ws.scale.set(1.15,.72,1.25);fieldRoot.add(ws);
+  }
+
+  if(S.ball){
+    const bp=new THREE.Vector3(S.ball.x,1.12+S.ball.y,-S.ball.z);
+    const state=ballStateInfo();
+    const ball=new THREE.Mesh(new THREE.SphereGeometry(Math.max(.055,P.ballM/2),28,20),mat(state.color));
+    ball.position.copy(bp);ballRoot.add(ball);
+
+    // trajectory tail
+    if(S.ball.history?.length>1){
+      const pts=S.ball.history.slice(-22).map(q=>new THREE.Vector3(q.x,1.12+q.y,-q.z));
+      const geo=new THREE.BufferGeometry().setFromPoints(pts);
+      const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:state.color,transparent:true,opacity:.65}));
+      ballRoot.add(line);
+    }
+  }
+}
+
+function ballStateInfo(){
+  if(!S.ball)return{key:'none',label:'等待球',color:0x7d95a5};
+  const ds=S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d);
+  const nearest=ds[0]?.d??Infinity;
+  const insideHands=nearest<=P.handPps;
+  const inReach=nearest<=P.reach;
+
+  let work=false,workD=Infinity;
+  if(S.hands.length===2){
+    const a=S.hands[0],b=S.hands[1],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2};
+    workD=d3(S.ball,mid);
+    const sep=d3(a,b);
+    work=workD<=Math.max(.17,Math.min(.36,sep*.52));
+  }
+
+  if(nearest<=P.contact)return{key:'contact',label:'觸球候選',color:0xff6268,nearest,work,workD};
+  if(work)return{key:'work',label:'進入雙手工作區',color:0xff9d4d,nearest,work,workD};
+  if(insideHands)return{key:'pps',label:'進入手部近體空間',color:0xffd95c,nearest,work,workD};
+  if(inReach)return{key:'reach',label:'進入可及區',color:0x42df8b,nearest,work,workD};
+  return{key:'extra',label:'離體空間',color:0x56a9ff,nearest,work,workD};
+}
+
+// ---------- MediaPipe hands ----------
 const HAND_MODEL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-const OBJ_MODEL='https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite';
-const SIZE_PRIORS={'sports ball':.21,'bottle':.25,'cup':.10,'cell phone':.15,'book':.24,'backpack':.45,'handbag':.35};
-
-function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b}
-function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
-function fx(){return canvas.width/(2*Math.tan(P.fov*Math.PI/360))}
-function p3x(px,z){return(px-canvas.width/2)*z/fx()}
-function labelOf(d){return d.categories?.[0]?.categoryName||'object'}
-
 async function init(){
   try{
     const vision=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
-    S.hand=await HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.4,minTrackingConfidence:.4});
-    S.obj=await ObjectDetector.createFromOptions(vision,{baseOptions:{modelAssetPath:OBJ_MODEL},runningMode:'VIDEO',scoreThreshold:.18,maxResults:15});
-    S.ready=true;setStatus('模型已就緒','載入第一視角影片');
-  }catch(e){console.error(e);setStatus('模型載入失敗','仍可使用手動指定目標')}
+    S.hand=await HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.38,minHandPresenceConfidence:.35,minTrackingConfidence:.38});
+    S.ready=true;setStatus('手部模型已就緒','載入影片，再指定球');
+  }catch(e){console.error(e);setStatus('手部模型載入失敗','球追蹤仍可使用；手部 PPS 將無法自動更新')}
 }
-
 function analyzeHands(now){
-  if(!S.hand)return;
+  if(!S.hand||now-S.lastHandAt<28)return;S.lastHandAt=now;
   try{
     const r=S.hand.detectForVideo(video,now),out=[];
     for(let i=0;i<(r.landmarks||[]).length;i++){
       const lm=r.landmarks[i],side=r.handednesses?.[i]?.[0]?.categoryName||'Hand';
-      const a=lm[5],b=lm[17],px=Math.hypot((a.x-b.x)*canvas.width,(a.y-b.y)*canvas.height);
-      if(px<5)continue;
-      const z=Math.min(2.2,Math.max(.18,fx()*.085/px));
-      const c={x:(lm[0].x+lm[5].x+lm[9].x+lm[13].x+lm[17].x)/5*canvas.width,y:(lm[0].y+lm[5].y+lm[9].y+lm[13].y+lm[17].y)/5*canvas.height};
-      out.push({side,z,x:p3x(c.x,z),cx:c.x,cy:c.y});
-    }S.hands=out;
-  }catch{}
-}
-
-function autoTargets(now){
-  if(!S.obj||now-S.lastAI<110)return;S.lastAI=now;
-  try{
-    const r=S.obj.detectForVideo(video,now),auto=[];
-    for(const d of r.detections||[]){
-      const b=d.boundingBox,label=labelOf(d),w=b.width,h=b.height,cx=b.originX+w/2,cy=b.originY+h/2;
-      if(label==='person'){
-        // reject first-person own arms/body fragments: bottom-touching or strongly cropped detections
-        const bottom=b.originY+h>canvas.height*.92,short=h<canvas.height*.42,wide=w>h*.95;
-        if(bottom&&(short||wide))continue;
-        let z;
-        const clipped=b.originY<3||bottom;
-        if(!clipped&&h>60)z=fx()*1.70/h;
-        else z=fx()*.45/Math.max(30,w);
-        z=Math.min(7,Math.max(.45,z));
-        auto.push({id:'P'+Math.round(cx+cy),kind:'person',label:'person',z,surface:Math.max(.05,z-.25),x:p3x(cx,z),radius:.25,cx,cy,manual:false});
-      }else if(SIZE_PRIORS[label]){
-        const size=SIZE_PRIORS[label],diam=Math.max(w,h),z=Math.min(8,Math.max(.15,fx()*size/diam));
-        auto.push({id:'O'+Math.round(cx+cy),kind:'object',label,z,surface:Math.max(.02,z-size/2),x:p3x(cx,z),radius:size/2,cx,cy,manual:false});
-      }
+      const a=lm[5],b=lm[17],palmPx=Math.hypot((a.x-b.x)*canvas.width,(a.y-b.y)*canvas.height);
+      if(palmPx<5)continue;
+      const z=Math.max(.16,Math.min(2.4,fx()*P.palmM/palmPx));
+      const ids=[0,5,9,13,17];let cx=0,cy=0;
+      for(const id of ids){cx+=lm[id].x*canvas.width;cy+=lm[id].y*canvas.height}cx/=ids.length;cy/=ids.length;
+      out.push({side,cx,cy,z,x:pxToX(cx,z),y:pxToY(cy,z),lm:lm.map(p=>({x:p.x*canvas.width,y:p.y*canvas.height}))});
     }
-    S.targets=[...auto,...S.manual];
-  }catch{}
+    // stabilize ordering by handedness
+    S.hands=out.sort((a,b)=>a.side.localeCompare(b.side));
+  }catch(e){}
 }
 
+// ---------- manual visual ball tracker ----------
+const rawCanvas=document.createElement('canvas'),rawCtx=rawCanvas.getContext('2d',{willReadFrequently:true});
+function ensureRaw(){
+  if(!video.videoWidth)return false;
+  if(rawCanvas.width!==video.videoWidth||rawCanvas.height!==video.videoHeight){rawCanvas.width=video.videoWidth;rawCanvas.height=video.videoHeight}
+  rawCtx.drawImage(video,0,0,rawCanvas.width,rawCanvas.height);return true;
+}
+function qbin(r,g,b){return ((r>>5)<<6)|((g>>5)<<3)|(b>>5)}
+function histAt(x,y,r){
+  if(!ensureRaw())return null;
+  const x0=Math.max(0,Math.floor(x-r)),y0=Math.max(0,Math.floor(y-r)),x1=Math.min(rawCanvas.width,Math.ceil(x+r)),y1=Math.min(rawCanvas.height,Math.ceil(y+r));
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0),im=rawCtx.getImageData(x0,y0,w,h),hist=new Float32Array(512);
+  let n=0;
+  for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+    const dx=(x0+xx)-x,dy=(y0+yy)-y;if(dx*dx+dy*dy>r*r)continue;
+    const i=(yy*w+xx)*4,bin=qbin(im.data[i],im.data[i+1],im.data[i+2]);hist[bin]++;n++;
+  }
+  if(!n)return null;for(let i=0;i<hist.length;i++)hist[i]/=n;return hist;
+}
+function setBallAt(x,y){
+  const r=+$('#pickR').value,hist=histAt(x,y,r);if(!hist)return;
+  const z=Math.max(.12,Math.min(7,fx()*P.ballM/(2*r)));
+  S.ball={cx:x,cy:y,pxRadius:r,z,x:pxToX(x,z),y:pxToY(y,z),hist,history:[],t:performance.now(),lost:0};
+  S.picking=false;$('#pickBall').classList.remove('active');setStatus('球已指定','播放影片開始追蹤球與近體空間');
+}
+function trackBall(now){
+  const m=S.ball;if(!m||now-S.lastTrackAt<35||!ensureRaw())return;S.lastTrackAt=now;
+  const search=Math.max(80,m.pxRadius*2.8),x0=Math.max(0,Math.floor(m.cx-search)),y0=Math.max(0,Math.floor(m.cy-search));
+  const x1=Math.min(rawCanvas.width,Math.ceil(m.cx+search)),y1=Math.min(rawCanvas.height,Math.ceil(m.cy+search));
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0),im=rawCtx.getImageData(x0,y0,w,h);
+  let sw=0,sx=0,sy=0,sm2=0;
+  const sig=search*.70;
+  for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+    const i=(yy*w+xx)*4,hw=m.hist[qbin(im.data[i],im.data[i+1],im.data[i+2])];
+    if(hw<.004)continue;
+    const gx=x0+xx,gy=y0+yy,dx=gx-m.cx,dy=gy-m.cy,prior=Math.exp(-(dx*dx+dy*dy)/(2*sig*sig)),wt=hw*prior;
+    sw+=wt;sx+=gx*wt;sy+=gy*wt;
+  }
+  if(sw<.10){m.lost++;return}else m.lost=0;
+  const nx=sx/sw,ny=sy/sw;
+  for(let yy=0;yy<h;yy+=3)for(let xx=0;xx<w;xx+=3){
+    const i=(yy*w+xx)*4,hw=m.hist[qbin(im.data[i],im.data[i+1],im.data[i+2])];if(hw<.006)continue;
+    const gx=x0+xx,gy=y0+yy,dx=gx-nx,dy=gy-ny;if(dx*dx+dy*dy<search*search)sm2+=(dx*dx+dy*dy)*hw;
+  }
+  let nr=m.pxRadius;
+  if(sm2>0){const est=Math.sqrt(Math.max(100,sm2/(Math.max(sw,.01)*2.5)));nr=Math.max(m.pxRadius*.78,Math.min(m.pxRadius*1.25,est))}
+  nr=Math.max(10,Math.min(180,m.pxRadius*.76+nr*.24));
+  const zRaw=Math.max(.10,Math.min(8,fx()*P.ballM/(2*nr))),z=m.z*.60+zRaw*.40;
+  m.cx=nx;m.cy=ny;m.pxRadius=nr;m.z=z;m.x=pxToX(nx,z);m.y=pxToY(ny,z);m.t=now;
+  m.history.push({x:m.x,y:m.y,z:m.z});if(m.history.length>45)m.history.shift();
+}
+
+// ---------- video overlay ----------
+const HAND_CONNS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function drawVideo(){
   if(!video.videoWidth)return;
   if(canvas.width!==video.videoWidth||canvas.height!==video.videoHeight){canvas.width=video.videoWidth;canvas.height=video.videoHeight}
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  ctx.save();ctx.strokeStyle='rgba(255,255,255,.20)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();ctx.restore();
 
-  // only draw small markers, no debug bounding boxes
-  for(const h of S.hands){ctx.fillStyle=h.side==='Left'?'#66d6ff':'#42df8b';ctx.beginPath();ctx.arc(h.cx,h.cy,7,0,Math.PI*2);ctx.fill()}
-  for(const t of S.manual){
-    const z=zone(t.surface);ctx.strokeStyle=z.css;ctx.lineWidth=3;ctx.beginPath();ctx.arc(t.cx,t.cy,18,0,Math.PI*2);ctx.stroke();
+  // Very light POV reference only.
+  ctx.save();ctx.strokeStyle='rgba(255,255,255,.17)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();ctx.restore();
+
+  for(const h of S.hands){
+    ctx.save();ctx.strokeStyle=h.side==='Left'?'#66d6ff':'#42df8b';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=Math.max(1.5,canvas.width/650);
+    for(const [a,b] of HAND_CONNS){ctx.beginPath();ctx.moveTo(h.lm[a].x,h.lm[a].y);ctx.lineTo(h.lm[b].x,h.lm[b].y);ctx.stroke()}
+    for(const p of h.lm){ctx.beginPath();ctx.arc(p.x,p.y,Math.max(1.5,canvas.width/520),0,Math.PI*2);ctx.fill()}
+    ctx.restore();
+  }
+  if(S.ball){
+    const st=ballStateInfo(),col='#'+st.color.toString(16).padStart(6,'0');
+    ctx.save();ctx.strokeStyle=col;ctx.lineWidth=Math.max(3,canvas.width/400);ctx.beginPath();ctx.arc(S.ball.cx,S.ball.cy,S.ball.pxRadius,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle=col;ctx.font='700 '+Math.max(12,canvas.width/80)+'px system-ui';ctx.fillText(st.label,S.ball.cx+S.ball.pxRadius+7,S.ball.cy);
+    ctx.restore();
   }
 }
 
-function recordZones(){
-  for(const t of S.targets){
-    const z=zone(t.surface);
-    if(t.lastZone&&z.rank<t.lastZone.rank){
-      S.events.unshift({time:video.currentTime,text:`${t.kind==='person'?'他人':'物體'}進入 ${z.label}`});S.events=S.events.slice(0,20);
+// ---------- state / events ----------
+function recordState(){
+  const st=ballStateInfo();
+  $('#renderState').textContent=st.label;
+  if(!S.ball)return;
+  if(st.key!==S.lastState){
+    const meaningful=['reach','pps','work','contact','extra'];
+    if(meaningful.includes(st.key)){
+      S.events.unshift({time:video.currentTime,text:st.label});
+      S.events=S.events.slice(0,24);
       $('#events').innerHTML=S.events.map(e=>`<div class="event"><b>${fmt(e.time)}</b> · ${e.text}</div>`).join('');
     }
-    t.lastZone=z;
+    S.lastState=st.key;
   }
 }
-
-function updateUI(){
+function updateMetrics(){
   $('#mHands').textContent=S.hands.length;
-  $('#mPeople').textContent=S.targets.filter(t=>t.kind==='person').length;
-  $('#mObjects').textContent=S.targets.filter(t=>t.kind==='object').length;
-  const n=[...S.targets].sort((a,b)=>a.surface-b.surface)[0];
-  $('#mNearest').textContent=n?(n.kind==='person'?'他人':n.label):'—';
-  $('#mDistance').textContent=n?n.surface.toFixed(2)+' m':'—';
-  $('#mZone').textContent=n?zone(n.surface).label:'—';
-}
+  $('#mBall').textContent=S.ball?S.ball.z.toFixed(2)+' m':'—';
 
-function loop(now){
-  if(video.readyState>=2&&video.currentTime!==S.lastT){
-    S.lastT=video.currentTime;
-    analyzeHands(now);autoTargets(now);drawVideo();recordZones();updateUI();renderSpatialTwin();
-    $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;$('#time').textContent=fmt(video.currentTime)+' / '+fmt(video.duration);
+  const L=S.hands.find(h=>h.side==='Left'),R=S.hands.find(h=>h.side==='Right');
+  $('#mLeft').textContent=(S.ball&&L)?d3(S.ball,L).toFixed(2)+' m':'—';
+  $('#mRight').textContent=(S.ball&&R)?d3(S.ball,R).toFixed(2)+' m':'—';
+
+  let workTxt='—';
+  if(S.ball&&S.hands.length===2){
+    const a=S.hands[0],b=S.hands[1],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2};
+    workTxt=d3(S.ball,mid).toFixed(2)+' m';
   }
-  requestAnimationFrame(loop);
+  $('#mWork').textContent=workTxt;
+  $('#mState').textContent=ballStateInfo().label;
 }
 
-// ---------- manual targets ----------
+// ---------- timeline ----------
+function frameLoop(now){
+  if(video.readyState>=2&&video.currentTime!==S.lastVideoTime){
+    S.lastVideoTime=video.currentTime;
+    analyzeHands(now);trackBall(now);drawVideo();recordState();updateMetrics();buildField();
+    $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;
+    $('#time').textContent=fmt(video.currentTime)+' / '+fmt(video.duration);
+  }
+  requestAnimationFrame(frameLoop);
+}
+
+// ---------- UI ----------
 function pointerXY(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-$('#pickPerson').onclick=()=>{S.pick=S.pick==='person'?null:'person';$('#pickPerson').classList.toggle('active',S.pick==='person');$('#pickObject').classList.remove('active')}
-$('#pickObject').onclick=()=>{S.pick=S.pick==='object'?null:'object';$('#pickObject').classList.toggle('active',S.pick==='object');$('#pickPerson').classList.remove('active')}
-$('#clearManual').onclick=()=>{S.manual=[];S.targets=S.targets.filter(t=>!t.manual)}
-canvas.addEventListener('pointerdown',e=>{
-  if(!S.pick)return;const p=pointerXY(e);
-  if(S.pick==='person'){
-    const z=1.5;S.manual.push({id:'MP'+S.nextId++,kind:'person',label:'manual person',z,surface:z-.25,x:p3x(p.x,z),radius:.25,cx:p.x,cy:p.y,manual:true});
-  }else{
-    const size=P.objSize,z=1.2;S.manual.push({id:'MO'+S.nextId++,kind:'object',label:'manual object',z,surface:z-size/2,x:p3x(p.x,z),radius:size/2,cx:p.x,cy:p.y,manual:true});
-  }
-  S.pick=null;$('#pickPerson').classList.remove('active');$('#pickObject').classList.remove('active');S.targets=[...S.targets.filter(t=>!t.manual),...S.manual];renderSpatialTwin();updateUI();
-});
+$('#pickBall').onclick=()=>{S.picking=!S.picking;$('#pickBall').classList.toggle('active',S.picking);setStatus(S.picking?'請點球中心':'已取消指定',S.picking?'暫停影片後點球中心效果最好':'')};
+$('#clearBall').onclick=()=>{S.ball=null;S.lastState='';buildField();updateMetrics();$('#renderState').textContent='等待球';setStatus('球追蹤已清除','可重新指定球')};
+canvas.addEventListener('pointerdown',e=>{if(!S.picking||!video.videoWidth)return;const p=pointerXY(e);setBallAt(p.x,p.y);drawVideo();buildField()});
+$('#pickR').addEventListener('input',()=>$('#oPickR').value=$('#pickR').value+' px');
 
-// ---------- file / controls ----------
 $('#videoFile').addEventListener('change',e=>{
-  const f=e.target.files?.[0];if(!f)return;video.src=URL.createObjectURL(f);
-  video.onloadedmetadata=()=>{canvas.width=video.videoWidth;canvas.height=video.videoHeight;$('#play').disabled=false;$('#pause').disabled=false;$('#seek').disabled=false;setStatus(S.ready?'影片已載入':'影片已載入 / 模型未就緒',video.videoWidth+'×'+video.videoHeight+' · '+fmt(video.duration));drawVideo()}
+  const f=e.target.files?.[0];if(!f)return;
+  video.src=URL.createObjectURL(f);
+  video.onloadedmetadata=()=>{
+    canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+    $('#play').disabled=false;$('#pause').disabled=false;$('#seek').disabled=false;
+    S.ball=null;S.hands=[];S.events=[];S.lastState='';$('#events').innerHTML='<div class="event">尚無球事件</div>';
+    setStatus(S.ready?'影片已載入':'影片已載入 / 手部模型未就緒',video.videoWidth+'×'+video.videoHeight+' · '+fmt(video.duration)+' · 請指定球');
+    drawVideo();buildField();updateMetrics();
+  }
 });
 $('#play').onclick=()=>video.play();$('#pause').onclick=()=>video.pause();
 $('#seek').addEventListener('input',()=>{if(video.duration)video.currentTime=video.duration*(+$('#seek').value/1000)});
-video.addEventListener('play',()=>setStatus('空間 Twin 分析中','影片作感測，右側為渲染結果'));
-video.addEventListener('pause',()=>setStatus('已暫停','可拖曳時間軸或手動指定目標'));
+video.addEventListener('play',()=>setStatus('PoseTwin POV 分析中','追蹤雙手、球與近體空間'));
+video.addEventListener('pause',()=>setStatus('已暫停','可指定球或拖曳時間軸'));
 
 function sync(){
-  P.fov=+$('#fov').value;P.pps=+$('#pps').value;P.reach=+$('#reach').value;P.objSize=+$('#objSize').value;
-  if(P.reach<P.pps+.1){P.reach=P.pps+.1;$('#reach').value=P.reach}
-  $('#oFov').value=P.fov+'°';$('#oPps').value=P.pps.toFixed(2)+'m';$('#oReach').value=P.reach.toFixed(2)+'m';$('#oObjSize').value=P.objSize.toFixed(2)+'m';rebuildShells();
+  P.fov=+$('#fov').value;P.palmM=+$('#palmCm').value/100;P.ballM=+$('#ballCm').value/100;P.handPps=+$('#handPps').value;P.contact=+$('#contact').value;
+  P.reach=Math.max(P.handPps+.16,P.handPps*1.75);
+  $('#oFov').value=P.fov+'°';$('#oPalm').value=(P.palmM*100).toFixed(1)+' cm';$('#oBallSize').value=(P.ballM*100).toFixed(1)+' cm';$('#oHandPps').value=P.handPps.toFixed(2)+' m';$('#oContact').value=P.contact.toFixed(2)+' m';
+  buildField();updateMetrics();
 }
-for(const id of ['fov','pps','reach','objSize'])$('#'+id).addEventListener('input',sync);sync();
+for(const id of ['fov','palmCm','ballCm','handPps','contact'])$('#'+id).addEventListener('input',sync);
+sync();
 
-init();requestAnimationFrame(loop);
+init();requestAnimationFrame(frameLoop);buildField();
 </script>
 </body>
 </html>
