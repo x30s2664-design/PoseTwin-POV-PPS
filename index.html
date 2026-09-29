@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v5.0 — Mask-based PPS</title>
+<title>PoseTwin POV Teaching Mode v1.0</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -43,16 +43,32 @@ input[type=range]{width:100%}
 .events{display:grid;gap:6px;max-height:220px;overflow:auto}.event{padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#08131b;font-size:12px}
 .statePill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid #36556a;background:#0a202b;font-size:12px}
 .targetBtns{display:flex;gap:8px;flex-wrap:wrap}.footer{text-align:center;color:#708897;font-size:11px;padding:10px}
+
+.teachTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.teachTab{border:1px solid var(--line);background:#0d1b25;color:var(--text);padding:8px 11px;border-radius:10px;cursor:pointer;font-size:12px}
+.teachTab.active{border-color:#79dcff;background:#12364a}
+.teachPanel{display:none}.teachPanel.active{display:block}
+.lessonBox{border:1px solid var(--line);background:#08131b;border-radius:12px;padding:12px;line-height:1.65}
+.lessonTitle{font-weight:800;margin-bottom:6px}
+.lessonStep{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;margin:8px 0}
+.lessonNum{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#102937;border:1px solid #2e5368;font-size:11px}
+.timeline{display:grid;gap:7px;max-height:240px;overflow:auto}
+.timeline .event.current{border-color:#79dcff;box-shadow:0 0 0 1px rgba(121,220,255,.18) inset}
+.quiz{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.quiz button{margin:4px 4px 0 0}
+.answer{margin-top:8px;color:#b9d1dc;font-size:12px}
+.renderCard{display:none!important}
+
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v5.0</span></h1>
-      <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching</span></h1>
+      <div class="sub">第一人稱近體空間教學 · 紅色本體 · 黃色 PPS · 藍色外層 · 球進入事件</div>
     </div>
-    <span class="badge">v5.0 · Mask-based PPS</span>
+    <span class="badge">Teaching Mode · v1.0</span>
   </div>
 
   <div class="layout">
@@ -103,53 +119,96 @@ input[type=range]{width:100%}
     </div>
 
     <div class="right">
-      <div class="card renderCard">
-        <div class="renderHead">
-          <h2>PoseTwin 近體空間模擬</h2>
-          <span id="renderState" class="statePill">等待球 / 手</span>
+      <div class="card section">
+        <div class="teachTabs">
+          <button class="teachTab active" data-tab="concept">概念示範</button>
+          <button class="teachTab" data-tab="ball">球進入 PPS</button>
+          <button class="teachTab" data-tab="frame">逐格教學</button>
+          <button class="teachTab" data-tab="compare">前後比較</button>
         </div>
-        <div class="renderWrap">
-          <div id="threeMount"><div style="padding:20px;color:#8da8b7;font-size:13px">3D 模組載入中…</div></div>
-          <div class="renderNote">左側影片：body mask 紅色 → dilate 黃色 PPS → 再 dilate 藍色外層。右側保留 3D 空間 Twin。</div>
-        </div>
-      </div>
 
-      <div class="controls">
-        <div class="card section">
-          <h2>即時分析</h2>
+        <div id="tab-concept" class="teachPanel active">
+          <h2>第一人稱近體空間</h2>
+          <div class="lessonBox">
+            <div class="lessonTitle">從自己的視角理解空間</div>
+            <div class="lessonStep"><div class="lessonNum">1</div><div><b style="color:#ff6268">紅色</b>：手臂與手本身，代表本體／接觸區。</div></div>
+            <div class="lessonStep"><div class="lessonNum">2</div><div><b style="color:#ffd95c">黃色</b>：本體外擴形成的近體空間（PPS），代表動作準備與防禦空間。</div></div>
+            <div class="lessonStep"><div class="lessonNum">3</div><div><b style="color:#56a9ff">藍色</b>：黃色 PPS 外側的離體／遠體空間。</div></div>
+            <div class="small">教學重點：空間不是固定在場地，而是跟著自己的手與身體一起移動。</div>
+          </div>
+        </div>
+
+        <div id="tab-ball" class="teachPanel">
+          <h2>球如何進入近體空間</h2>
           <div class="grid">
-            <div class="metric"><b id="mHands">0</b><span>自己的手</span></div>
-            <div class="metric"><b id="mBall">—</b><span>球距視點</span></div>
-            <div class="metric"><b id="mLeft">—</b><span>球 ↔ 左手</span></div>
-            <div class="metric"><b id="mRight">—</b><span>球 ↔ 右手</span></div>
-            <div class="metric"><b id="mWork">—</b><span>雙手工作區</span></div>
-            <div class="metric"><b id="mState">—</b><span>球狀態</span></div>
+            <div class="metric"><b id="teachBallZone">等待球</b><span>目前區域</span></div>
+            <div class="metric"><b id="teachBallDist">—</b><span>球到最近手</span></div>
+            <div class="metric"><b id="teachNearestHand">—</b><span>最近手</span></div>
+            <div class="metric"><b id="teachState">—</b><span>教學狀態</span></div>
           </div>
-          <div class="legend" style="margin-top:10px">
-            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>本體 / 手臂</b><div class="small">手臂與手本身</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間 PPS</b><div class="small">手臂本體外擴 1.5×</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>近體空間外層</b><div class="small">黃色 PPS 外側的離體 / 遠體空間</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>觸球</b><div class="small">球進入紅色本體區</div></div></div>
+          <div class="lessonBox" style="margin-top:10px">
+            <div id="teachNarration">指定球後，系統會依序顯示：藍色外層 → 黃色 PPS → 紅色接觸區。</div>
           </div>
         </div>
 
-        <div class="card section">
-          <h2>空間參數</h2>
-          <div class="ctrl"><div class="ctrlHead"><label>水平 FOV</label><output id="oFov">100°</output></div><input id="fov" type="range" min="55" max="160" value="100"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>手掌 MCP 寬</label><output id="oPalm">8.5 cm</output></div><input id="palmCm" type="range" min="6.0" max="11.0" step="0.1" value="8.5"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>球直徑</label><output id="oBallSize">21.0 cm</output></div><input id="ballCm" type="range" min="12" max="30" step=".5" value="21"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>手部 PPS 半徑</label><output id="oHandPps">0.34 m</output></div><input id="handPps" type="range" min=".18" max=".60" step=".01" value=".34"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>觸球閾值</label><output id="oContact">0.14 m</output></div><input id="contact" type="range" min=".06" max=".24" step=".01" value=".14"></div>
+        <div id="tab-frame" class="teachPanel">
+          <h2>逐格教學</h2>
+          <div class="lessonBox">
+            <div class="lessonTitle">建議操作</div>
+            <div class="small">暫停影片後，拖曳時間軸或使用前／後一格，觀察球何時穿越藍、黃、紅三層。</div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button id="frameBack" class="btn">◀ 前一格</button>
+              <button id="frameNext" class="btn">下一格 ▶</button>
+            </div>
+            <div class="quiz">
+              <b>提問：</b>球進入黃色 PPS 時，雙手是否已經準備好？
+              <div>
+                <button class="btn quizBtn" data-answer="yes">是</button>
+                <button class="btn quizBtn" data-answer="no">否</button>
+              </div>
+              <div id="quizAnswer" class="answer">先觀察手的位置，再選答案。</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-compare" class="teachPanel">
+          <h2>前後比較</h2>
+          <div class="lessonBox">
+            <div class="lessonTitle">比較兩次動作時，先看三件事</div>
+            <div class="lessonStep"><div class="lessonNum">A</div><div>球何時從藍色外層進入黃色 PPS？</div></div>
+            <div class="lessonStep"><div class="lessonNum">B</div><div>進入黃色 PPS 時，左右手是否已經到位？</div></div>
+            <div class="lessonStep"><div class="lessonNum">C</div><div>接觸紅色本體區之前，是否有足夠準備時間？</div></div>
+          </div>
         </div>
       </div>
 
       <div class="card section">
-        <h2>動作事件</h2>
-        <div id="events" class="events"><div class="event">尚無球事件</div></div>
+        <h2>即時教學資訊</h2>
+        <div class="grid">
+          <div class="metric"><b id="mHands">0</b><span>目前辨識手數</span></div>
+          <div class="metric"><b id="mBall">—</b><span>球距視點</span></div>
+          <div class="metric"><b id="mLeft">—</b><span>球 ↔ 左手</span></div>
+          <div class="metric"><b id="mRight">—</b><span>球 ↔ 右手</span></div>
+          <div class="metric"><b id="mWork">—</b><span>雙手工作區</span></div>
+          <div class="metric"><b id="mState">—</b><span>球狀態</span></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h2>事件時間線</h2>
+        <div id="events" class="timeline"><div class="event">尚無球事件</div></div>
+      </div>
+
+      <div class="card section">
+        <h2>教學設定</h2>
+        <div class="ctrl"><div class="ctrlHead"><label>水平 FOV</label><output id="oFov">100°</output></div><input id="fov" type="range" min="55" max="160" value="100"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>手掌 MCP 寬</label><output id="oPalm">8.5 cm</output></div><input id="palmCm" type="range" min="6.0" max="11.0" step="0.1" value="8.5"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>球直徑</label><output id="oBallSize">21.0 cm</output></div><input id="ballCm" type="range" min="12" max="30" step=".5" value="21"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>手部 PPS 半徑</label><output id="oHandPps">0.34 m</output></div><input id="handPps" type="range" min=".18" max=".60" step=".01" value=".34"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>觸球閾值</label><output id="oContact">0.14 m</output></div><input id="contact" type="range" min=".06" max=".24" step=".01" value=".14"></div>
       </div>
     </div>
-  </div>
-  <div class="footer">PoseTwin POV v5.0 · body mask → dilate → rings · red body · yellow PPS · blue outer space</div>
+  <div class="footer">PoseTwin POV Teaching Mode · 第一人稱近體空間教學 · body / PPS / outer space</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -1017,6 +1076,71 @@ function drawVideo(){
   }
 }
 
+
+function currentTeachingInfo(){
+  const state=ballStateInfo();
+  const L=S.hands.find(h=>h.side==='Left');
+  const R=S.hands.find(h=>h.side==='Right');
+  const dl=(S.ball&&L)?d3(S.ball,L):Infinity;
+  const dr=(S.ball&&R)?d3(S.ball,R):Infinity;
+  let nearest='—',dist=Infinity;
+  if(dl<dr){nearest='左手';dist=dl}
+  else if(isFinite(dr)){nearest='右手';dist=dr}
+
+  let zone='等待球',narr='指定球後，系統會依序顯示：藍色外層 → 黃色 PPS → 紅色接觸區。';
+  if(S.ball){
+    if(state.key==='contact'){
+      zone='紅色：接觸 / 本體';
+      narr='球已進入紅色本體區。這是接觸或即將觸球的階段。';
+    }else if(state.key==='pps'||state.key==='work'){
+      zone='黃色：近體空間 PPS';
+      narr='球已進入黃色 PPS。觀察此時雙手是否已經完成準備位置。';
+    }else if(state.key==='reach'){
+      zone='藍→黃過渡';
+      narr='球正在接近近體空間。此時應開始準備手部位置與身體反應。';
+    }else{
+      zone='藍色：離體空間';
+      narr='球仍在離體空間。此階段主要是視覺注意與預判。';
+    }
+  }
+  return {state,nearest,dist,zone,narr};
+}
+function updateTeachingUI(){
+  const info=currentTeachingInfo();
+  if($('#teachBallZone'))$('#teachBallZone').textContent=info.zone;
+  if($('#teachBallDist'))$('#teachBallDist').textContent=isFinite(info.dist)?info.dist.toFixed(2)+' m':'—';
+  if($('#teachNearestHand'))$('#teachNearestHand').textContent=info.nearest;
+  if($('#teachState'))$('#teachState').textContent=info.state.label||'—';
+  if($('#teachNarration'))$('#teachNarration').textContent=info.narr;
+}
+function initTeachingTabs(){
+  document.querySelectorAll('.teachTab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.teachTab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.teachPanel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      $('#tab-'+btn.dataset.tab)?.classList.add('active');
+    });
+  });
+}
+function stepFrame(dir){
+  if(!video.duration)return;
+  video.pause();
+  video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+dir/30));
+  S.lastPausedAnalyze=0;
+}
+function initTeachingControls(){
+  $('#frameBack')?.addEventListener('click',()=>stepFrame(-1));
+  $('#frameNext')?.addEventListener('click',()=>stepFrame(1));
+  document.querySelectorAll('.quizBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      $('#quizAnswer').textContent=btn.dataset.answer==='yes'
+        ?'再確認一次：球進入黃色 PPS 時，雙手是否已在預定接觸位置。'
+        :'若球已進入黃色 PPS，手仍未到位，可以用來討論「準備時間偏晚」。';
+    });
+  });
+}
+
 // ---------- state / events ----------
 function recordState(){
   const st=ballStateInfo();
@@ -1027,7 +1151,7 @@ function recordState(){
     if(meaningful.includes(st.key)){
       S.events.unshift({time:video.currentTime,text:st.label});
       S.events=S.events.slice(0,24);
-      $('#events').innerHTML=S.events.map(e=>`<div class="event"><b>${fmt(e.time)}</b> · ${e.text}</div>`).join('');
+      $('#events').innerHTML=S.events.map((e,i)=>`<div class="event ${i===0?'current':''}"><b>${fmt(e.time)}</b> · ${e.text}</div>`).join('');
     }
     S.lastState=st.key;
   }
@@ -1057,6 +1181,7 @@ function updateMetrics(){
   }
   $('#mWork').textContent=workTxt;
   $('#mState').textContent=ballStateInfo().label;
+  updateTeachingUI();
 }
 
 // ---------- timeline ----------
@@ -1176,10 +1301,10 @@ sync();
 
 try{
   // If this line runs, the core script parsed successfully.
-  $('#detail').textContent='核心程式已啟動；正在載入 3D 與手部模型…';
+  $('#detail').textContent='核心程式已啟動；正在載入手部模型…';
+  initTeachingTabs();
+  initTeachingControls();
   requestAnimationFrame(frameLoop);
-  loop3();
-  initThree();
   initHands();
 
   // Loading should not remain ambiguous forever.
