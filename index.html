@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4.4 — Layered Arm PPS</title>
+<title>PoseTwin POV v4.5 — Persistent Layered Arm PPS</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4.4</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v4.5</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.4 · Layered Arm PPS</span>
+    <span class="badge">v4.5 · Persistent Layered Arm PPS</span>
   </div>
 
   <div class="layout">
@@ -136,7 +136,7 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.4 · red body · yellow PPS 1.5× · blue outer space · ball tracking</div>
+  <div class="footer">PoseTwin POV v4.5 · persistent arms · red body · yellow PPS 1.5× · blue outer space</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -146,7 +146,7 @@ const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
 const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.35,showVideoPps:true,ppsScale:1.5,farScale:2.35};
-const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
+const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,lastPausedAnalyze:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
 let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
 let FilesetResolver=null, HandLandmarker=null;
 
@@ -402,6 +402,15 @@ async function initHands(){
     });
     S.ready=true;
     setStatus('手部模型已就緒','載入影片，再指定球');
+    if(video.readyState>=2){
+      setTimeout(()=>{
+        analyzeHands(performance.now());
+        drawVideo();
+        updateMetrics();
+        updateHandHud();
+        buildField();
+      },50);
+    }
   }catch(e){
     console.error(e);
     S.handError=e?.message||String(e);
@@ -409,21 +418,49 @@ async function initHands(){
   }
 }
 function analyzeHands(now){
-  if(!S.hand||now-S.lastHandAt<28)return;S.lastHandAt=now;
+  if(!S.hand||now-S.lastHandAt<28)return;
+  S.lastHandAt=now;
   try{
-    const r=S.hand.detectForVideo(video,now),out=[];
+    const r=S.hand.detectForVideo(video,now),detected=[];
     for(let i=0;i<(r.landmarks||[]).length;i++){
-      const lm=r.landmarks[i],side=r.handednesses?.[i]?.[0]?.categoryName||'Hand';
-      const a=lm[5],b=lm[17],palmPx=Math.hypot((a.x-b.x)*canvas.width,(a.y-b.y)*canvas.height);
+      const lm=r.landmarks[i],side=r.handednesses?.[i]?.[0]?.categoryName||('Hand'+i);
+      const a=lm[5],b=lm[17];
+      const palmPx=Math.hypot((a.x-b.x)*canvas.width,(a.y-b.y)*canvas.height);
       if(palmPx<5)continue;
       const z=Math.max(.16,Math.min(2.4,fx()*P.palmM/palmPx));
       const ids=[0,5,9,13,17];let cx=0,cy=0;
-      for(const id of ids){cx+=lm[id].x*canvas.width;cy+=lm[id].y*canvas.height}cx/=ids.length;cy/=ids.length;
-      out.push({side,cx,cy,z,x:pxToX(cx,z),y:pxToY(cy,z),lm:lm.map(p=>({x:p.x*canvas.width,y:p.y*canvas.height}))});
+      for(const id of ids){cx+=lm[id].x*canvas.width;cy+=lm[id].y*canvas.height}
+      cx/=ids.length;cy/=ids.length;
+
+      const prev=S.hands.find(h=>h.side===side);
+      const smooth=.48;
+      const mapped=lm.map(p=>({x:p.x*canvas.width,y:p.y*canvas.height}));
+      if(prev){
+        cx=prev.cx*(1-smooth)+cx*smooth;
+        cy=prev.cy*(1-smooth)+cy*smooth;
+      }
+      const zz=prev?prev.z*.55+z*.45:z;
+      detected.push({
+        side,cx,cy,z:zz,
+        x:pxToX(cx,zz),y:pxToY(cy,zz),
+        lm:mapped,seenAt:now,stale:false
+      });
     }
-    // stabilize ordering by handedness
-    S.hands=out.sort((a,b)=>a.side.localeCompare(b.side));
-  }catch(e){}
+
+    // Keep a recently-seen hand through short ball/hand occlusions.
+    const HOLD_MS=850;
+    for(const prev of S.hands){
+      if(detected.some(h=>h.side===prev.side))continue;
+      const age=now-(prev.seenAt||0);
+      if(age<HOLD_MS){
+        detected.push({...prev,stale:true});
+      }
+    }
+    S.hands=detected.sort((a,b)=>a.side.localeCompare(b.side));
+  }catch(e){
+    // On a single-frame detector error, keep previous hands instead of deleting PPS.
+    console.warn('hand frame error',e);
+  }
 }
 
 // ---------- manual visual ball tracker ----------
@@ -481,56 +518,43 @@ function trackBall(now){
 
 
 function armWidthPx(h){
-  // Palm MCP width is a stable local scale for the first-person hand.
   const p5=h.lm?.[5],p17=h.lm?.[17];
-  const palm = (p5&&p17) ? Math.hypot(p5.x-p17.x,p5.y-p17.y) : 36;
-  return Math.max(18,Math.min(95,palm*.72));
+  const palm=(p5&&p17)?Math.hypot(p5.x-p17.x,p5.y-p17.y):38;
+  return Math.max(24,Math.min(110,palm*.96));
 }
 function inferredForearm(h){
-  // Estimate a forearm continuation from wrist -> palm center, extending toward body/bottom.
-  const w=h.lm?.[0] || {x:h.cx,y:h.cy};
-  const m=h.lm?.[9] || {x:h.cx,y:h.cy-20};
-  let vx=w.x-m.x,vy=w.y-m.y;
+  const wrist=h.lm?.[0]||{x:h.cx,y:h.cy};
+  const palm=h.lm?.[9]||{x:h.cx,y:h.cy-18};
+  let vx=wrist.x-palm.x,vy=wrist.y-palm.y;
   let len=Math.hypot(vx,vy);
   if(len<3){vx=0;vy=1;len=1}
   vx/=len;vy/=len;
-  // Force direction generally toward lower image/body if ambiguous.
-  if(vy<-.15){vx=-vx;vy=-vy}
-  const ext=Math.max(70,Math.min(canvas.height*.34,armWidthPx(h)*4.6));
-  const elbow={x:w.x+vx*ext,y:w.y+vy*ext};
-  return {wrist:w,elbow};
+  if(vy<-.05){vx=-vx;vy=-vy}
+  const ext=Math.max(90,Math.min(canvas.height*.38,armWidthPx(h)*4.8));
+  return {wrist,elbow:{x:wrist.x+vx*ext,y:wrist.y+vy*ext}};
 }
-function drawCapsule(a,b,width,fill,stroke=null,line=2){
-  if(!a||!b||!isFinite(width)||width<=0)return;
+function armPath(h){
+  const seg=inferredForearm(h);
+  const wrist=h.lm?.[0]||seg.wrist;
+  const palm=h.lm?.[9]||{x:h.cx,y:h.cy};
+  const tip=h.lm?.[12]||palm;
+  // Limit fingertip extension so a bad landmark does not create a giant band.
+  let tx=tip.x,ty=tip.y;
+  const dx=tx-palm.x,dy=ty-palm.y,d=Math.hypot(dx,dy);
+  const maxD=armWidthPx(h)*2.4;
+  if(d>maxD&&d>0){tx=palm.x+dx/d*maxD;ty=palm.y+dy/d*maxD}
+  return [seg.elbow,wrist,palm,{x:tx,y:ty}];
+}
+function drawPathCapsule(points,width,fill,stroke=null,line=2){
+  if(!points?.length||width<=0)return;
   ctx.save();
-  ctx.lineCap='round';
-  ctx.lineJoin='round';
-  ctx.beginPath();
-  ctx.moveTo(a.x,a.y);
-  ctx.lineTo(b.x,b.y);
-  ctx.strokeStyle=fill;
-  ctx.lineWidth=width;
-  ctx.stroke();
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+  ctx.strokeStyle=fill;ctx.lineWidth=width;ctx.stroke();
   if(stroke){
-    ctx.strokeStyle=stroke;
-    ctx.lineWidth=Math.max(1,line);
-    ctx.stroke();
+    ctx.strokeStyle=stroke;ctx.lineWidth=Math.max(1,line);ctx.stroke();
   }
-  ctx.restore();
-}
-function drawHandBlob(h,width,fill,stroke=null,line=2){
-  const pts=[0,1,2,5,9,13,17].map(i=>h.lm?.[i]).filter(Boolean);
-  if(!pts.length)return;
-  const cx=pts.reduce((a,p)=>a+p.x,0)/pts.length;
-  const cy=pts.reduce((a,p)=>a+p.y,0)/pts.length;
-  ctx.save();
-  ctx.fillStyle=fill;
-  ctx.strokeStyle=stroke||fill;
-  ctx.lineWidth=line;
-  ctx.beginPath();
-  ctx.arc(cx,cy,width*.58,0,Math.PI*2);
-  ctx.fill();
-  if(stroke)ctx.stroke();
   ctx.restore();
 }
 function nearestHandInfo(){
@@ -547,84 +571,64 @@ function drawVideoPps(){
 
   ctx.save();
 
-  // Layer order: BLUE outer -> YELLOW PPS -> RED body.
-  // This mirrors PoseTwin: inner body space, expanded PPS, then outer/far space.
   for(const h of S.hands){
-    const arm=armWidthPx(h);
-    const seg=inferredForearm(h);
+    const core=armWidthPx(h);
+    const yellowW=core*1.5;     // requested PPS = 1.5× body/arm
+    const blueW=core*2.35;      // outer/far-space band
+    const path=armPath(h);
+    const faded=h.stale?.62:1;
 
-    const blueW=arm*P.farScale;
-    const yellowW=arm*P.ppsScale;
-    const redW=arm;
+    const ballNearThis=S.ball&&nearestHand===h;
+    const inYellow=ballNearThis&&['pps','work','contact'].includes(state.key);
+    const inRed=ballNearThis&&state.key==='contact';
 
-    const ballNearThis = S.ball && nearestHand===h;
-    const inPps = ballNearThis && ['pps','work','contact'].includes(state.key);
-    const inContact = ballNearThis && state.key==='contact';
-
-    // Blue outer layer
-    drawCapsule(
-      seg.elbow, seg.wrist, blueW,
-      `rgba(86,169,255,${a*.26})`,
-      `rgba(86,169,255,${Math.min(.92,a*1.45)})`,
-      Math.max(1.5,canvas.width/700)
-    );
-    drawHandBlob(
-      h, blueW,
-      `rgba(86,169,255,${a*.20})`,
-      `rgba(86,169,255,${Math.min(.86,a*1.25)})`,
-      Math.max(1.5,canvas.width/720)
+    // BLUE outer / far layer first.
+    drawPathCapsule(
+      path,blueW,
+      `rgba(61,142,255,${a*.34*faded})`,
+      `rgba(86,169,255,${Math.min(.98,a*1.7)*faded})`,
+      Math.max(2,canvas.width/620)
     );
 
-    // Yellow PPS = 1.5× arm width
-    drawCapsule(
-      seg.elbow, seg.wrist, yellowW,
-      inPps ? `rgba(255,217,92,${Math.min(.68,a*1.38)})`
-            : `rgba(255,217,92,${a*.46})`,
-      inPps ? `rgba(255,238,145,${Math.min(.98,a*2.0)})`
-            : `rgba(255,217,92,${Math.min(.90,a*1.45)})`,
-      inPps ? Math.max(3,canvas.width/430) : Math.max(2,canvas.width/600)
-    );
-    drawHandBlob(
-      h, yellowW,
-      inPps ? `rgba(255,217,92,${Math.min(.70,a*1.42)})`
-            : `rgba(255,217,92,${a*.48})`,
-      inPps ? `rgba(255,238,145,${Math.min(.98,a*2.0)})`
-            : `rgba(255,217,92,${Math.min(.90,a*1.45)})`,
-      inPps ? Math.max(3,canvas.width/430) : Math.max(2,canvas.width/600)
+    // YELLOW PPS = exactly 1.5× red/core width.
+    drawPathCapsule(
+      path,yellowW,
+      inYellow
+        ? `rgba(255,214,55,${Math.min(.82,a*1.65)*faded})`
+        : `rgba(255,217,92,${a*.60*faded})`,
+      inYellow
+        ? `rgba(255,241,150,${Math.min(1,a*2.25)*faded})`
+        : `rgba(255,221,90,${Math.min(.98,a*1.8)*faded})`,
+      inYellow?Math.max(4,canvas.width/380):Math.max(2.5,canvas.width/520)
     );
 
-    // Red body / arm core
-    drawCapsule(
-      seg.elbow, seg.wrist, redW,
-      inContact ? `rgba(255,70,78,${Math.min(.90,a*1.9)})`
-                : `rgba(255,83,88,${Math.min(.78,a*1.55)})`,
-      `rgba(255,98,104,${Math.min(.98,a*2.2)})`,
-      Math.max(2,canvas.width/560)
+    // RED arm/hand body core on top.
+    drawPathCapsule(
+      path,core,
+      inRed
+        ? `rgba(255,35,45,${Math.min(.96,a*2.25)*faded})`
+        : `rgba(238,45,52,${Math.min(.90,a*1.9)*faded})`,
+      `rgba(255,91,95,${Math.min(1,a*2.35)*faded})`,
+      Math.max(3,canvas.width/470)
     );
-    drawHandBlob(
-      h, redW,
-      inContact ? `rgba(255,70,78,${Math.min(.90,a*1.9)})`
-                : `rgba(255,83,88,${Math.min(.78,a*1.55)})`,
-      `rgba(255,98,104,${Math.min(.98,a*2.2)})`,
-      Math.max(2,canvas.width/560)
-    );
+
+    // Small marker at palm center so the detected hand is obvious.
+    ctx.beginPath();ctx.arc(h.cx,h.cy,Math.max(4,core*.08),0,Math.PI*2);
+    ctx.fillStyle=h.stale?'rgba(255,255,255,.35)':'rgba(255,255,255,.85)';ctx.fill();
   }
 
-  // Draw ball relation line to nearest hand.
   if(S.ball&&nearestHand){
     ctx.beginPath();
     ctx.moveTo(S.ball.cx,S.ball.cy);
     ctx.lineTo(nearestHand.cx,nearestHand.cy);
     ctx.strokeStyle =
-      state.key==='contact' ? '#ff5358' :
+      state.key==='contact' ? '#ff333b' :
       state.key==='work' ? '#ff9d4d' :
-      state.key==='pps' ? '#ffd95c' :
-      state.key==='reach' ? '#56a9ff' :
-      'rgba(255,255,255,.55)';
-    ctx.lineWidth=Math.max(2,canvas.width/620);
-    ctx.setLineDash(state.key==='extra'?[7,6]:[]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+      state.key==='pps' ? '#ffda35' :
+      '#56a9ff';
+    ctx.lineWidth=Math.max(2.5,canvas.width/560);
+    ctx.setLineDash(state.key==='extra'?[8,6]:[]);
+    ctx.stroke();ctx.setLineDash([]);
   }
 
   ctx.restore();
@@ -671,6 +675,16 @@ function recordState(){
     S.lastState=st.key;
   }
 }
+function updateHandHud(){
+  if(!video.videoWidth)return;
+  const fresh=S.hands.filter(h=>!h.stale).length;
+  const held=S.hands.length-fresh;
+  const suffix=held?`（${held} 暫存）`:'';
+  if(video.paused && S.ready){
+    $('#detail').textContent=`目前影格：手部 ${S.hands.length} ${suffix} · 紅=本體 / 黃=1.5× PPS / 藍=外層`;
+  }
+}
+
 function updateMetrics(){
   $('#mHands').textContent=S.hands.length;
   $('#mBall').textContent=S.ball?S.ball.z.toFixed(2)+' m':'—';
@@ -690,11 +704,28 @@ function updateMetrics(){
 
 // ---------- timeline ----------
 function frameLoop(now){
-  if(video.readyState>=2&&video.currentTime!==S.lastVideoTime){
-    S.lastVideoTime=video.currentTime;
-    analyzeHands(now);trackBall(now);drawVideo();recordState();updateMetrics();buildField();
-    $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;
-    $('#time').textContent=fmt(video.currentTime)+' / '+fmt(video.duration);
+  if(video.readyState>=2){
+    const moved=video.currentTime!==S.lastVideoTime;
+    const pausedRefresh=video.paused&&S.ready&&(now-S.lastPausedAnalyze>125);
+
+    if(moved||pausedRefresh){
+      if(moved)S.lastVideoTime=video.currentTime;
+      if(pausedRefresh)S.lastPausedAnalyze=now;
+
+      analyzeHands(now);
+
+      // Never let the visual ball tracker drift while looking at the same paused frame.
+      if(moved)trackBall(now);
+
+      drawVideo();
+      recordState();
+      updateMetrics();
+      updateHandHud();
+      buildField();
+
+      $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;
+      $('#time').textContent=fmt(video.currentTime)+' / '+fmt(video.duration);
+    }
   }
   requestAnimationFrame(frameLoop);
 }
@@ -723,7 +754,10 @@ $('#videoFile').addEventListener('change',e=>{
 $('#play').onclick=()=>video.play();$('#pause').onclick=()=>video.pause();
 $('#seek').addEventListener('input',()=>{if(video.duration)video.currentTime=video.duration*(+$('#seek').value/1000)});
 video.addEventListener('play',()=>setStatus('PoseTwin POV 分析中','追蹤雙手、球與近體空間'));
-video.addEventListener('pause',()=>setStatus('已暫停','可指定球或拖曳時間軸'));
+video.addEventListener('pause',()=>{
+  setStatus('已暫停','正在分析目前影格的紅 / 黃 / 藍空間');
+  S.lastPausedAnalyze=0;
+});
 
 function sync(){
   P.fov=+$('#fov').value;P.palmM=+$('#palmCm').value/100;P.ballM=+$('#ballCm').value/100;P.handPps=+$('#handPps').value;P.contact=+$('#contact').value;
