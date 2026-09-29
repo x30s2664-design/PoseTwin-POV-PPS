@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV v4.6 — Contour Arm PPS</title>
+<title>PoseTwin POV v5.0 — Mask-based PPS</title>
 <style>
 :root{color-scheme:dark;--bg:#061018;--panel:#0b1822;--line:#223a4b;--text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;--green:#42df8b;--yellow:#ffd95c;--red:#ff6268;--blue:#56a9ff;--mag:#ff83e6}
 *{box-sizing:border-box}
@@ -49,10 +49,10 @@ input[type=range]{width:100%}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV v4.6</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV v5.0</span></h1>
       <div class="sub">Ball-Centered Peripersonal Space · 第一視角雙手近體空間 · 球追蹤 · 觸球 / 離手事件</div>
     </div>
-    <span class="badge">v4.6 · Contour Arm PPS</span>
+    <span class="badge">v5.0 · Mask-based PPS</span>
   </div>
 
   <div class="layout">
@@ -76,7 +76,7 @@ input[type=range]{width:100%}
           <button id="clearBall" class="btn">清除球追蹤</button>
         </div>
         <div class="ctrl"><div class="ctrlHead"><label>指定球初始圈半徑</label><output id="oPickR">38 px</output></div><input id="pickR" type="range" min="14" max="110" step="1" value="38"></div>
-        <div class="small">影片會直接顯示 PoseTwin 式分層輪廓：紅色手臂/手本體 → 黃色 1.5× 近體空間 → 藍色外層。球可另外用「指定球」追蹤。</div>
+        <div class="small">v5 直接沿用 PoseTwin 的遮罩流程：先建立手＋前臂 body mask，再外擴成黃色 PPS 與藍色外層。球可另外用「指定球」追蹤。</div>
         <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px">
             <input id="showVideoPps" type="checkbox" checked> 顯示影片分層空間
@@ -84,6 +84,19 @@ input[type=range]{width:100%}
           <div class="ctrl">
             <div class="ctrlHead"><label>空間透明度</label><output id="oVideoAlpha">48%</output></div>
             <input id="videoAlpha" type="range" min="10" max="80" step="1" value="48">
+          </div>
+          <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:10px">
+            <div class="small" style="margin-bottom:8px"><b style="color:#fff">AI 抓不到手時：</b>手動校正臂線，依序點「畫面邊緣/前臂 → 手腕 → 掌心」。</div>
+            <div class="targetBtns">
+              <button id="pickLeftArm" class="btn">🫲 校正左臂</button>
+              <button id="pickRightArm" class="btn">🫱 校正右臂</button>
+              <button id="clearArms" class="btn">清除臂校正</button>
+            </div>
+            <div class="ctrl">
+              <div class="ctrlHead"><label>手動紅色本體寬</label><output id="oManualArmW">54 px</output></div>
+              <input id="manualArmW" type="range" min="24" max="120" step="2" value="54">
+            </div>
+            <div id="armCalStatus" class="small">未校正。AI 有抓到手時會自動建立像素 mask；抓不到可手動校正。</div>
           </div>
         </div>
       </div>
@@ -97,7 +110,7 @@ input[type=range]{width:100%}
         </div>
         <div class="renderWrap">
           <div id="threeMount"><div style="padding:20px;color:#8da8b7;font-size:13px">3D 模組載入中…</div></div>
-          <div class="renderNote">紅色 = 手臂 / 手本體 · 黃色 = 本體外擴 1.5× 近體空間 · 藍色 = 近體空間外層 · 球依第一視角估測位置在 3D 空間移動</div>
+          <div class="renderNote">左側影片：body mask 紅色 → dilate 黃色 PPS → 再 dilate 藍色外層。右側保留 3D 空間 Twin。</div>
         </div>
       </div>
 
@@ -136,7 +149,7 @@ input[type=range]{width:100%}
       </div>
     </div>
   </div>
-  <div class="footer">PoseTwin POV v4.6 · contour arm bands · red body · yellow PPS 1.5× · blue outer space</div>
+  <div class="footer">PoseTwin POV v5.0 · body mask → dilate → rings · red body · yellow PPS · blue outer space</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -146,7 +159,7 @@ const $=s=>document.querySelector(s);
 const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 const mount=$('#threeMount');
 const P={fov:100,palmM:.085,ballM:.21,handPps:.34,contact:.14,reach:.62,videoAlpha:.48,showVideoPps:true,ppsScale:1.5,farScale:2.35};
-const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,lastPausedAnalyze:0,events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null};
+const S={hand:null,ready:false,hands:[],ball:null,picking:false,lastVideoTime:-1,lastHandAt:0,lastTrackAt:0,lastPausedAnalyze:0,lastMaskAt:0,armMasks:[],events:[],lastState:'',raf:0,threeReady:false,threeError:null,handError:null,manualArms:{Left:null,Right:null},armPick:null};
 let THREE=null, scene=null, cam3=null, renderer=null, self=null, fieldRoot=null, handRoot=null, ballRoot=null;
 let FilesetResolver=null, HandLandmarker=null;
 
@@ -405,6 +418,7 @@ async function initHands(){
     if(video.readyState>=2){
       setTimeout(()=>{
         analyzeHands(performance.now());
+        rebuildArmMasks(performance.now(),true);
         drawVideo();
         updateMetrics();
         updateHandHud();
@@ -636,86 +650,345 @@ function drawArmBand(h,width,fill,outline=null,outlineWidth=2){
   }
   ctx.restore();
 }
+
+function renderArms(){
+  const out=[];
+  for(const side of ['Left','Right']){
+    const auto=S.hands.find(h=>h.side===side);
+    const manual=S.manualArms[side];
+    if(auto) out.push({type:'auto',side,h:auto});
+    else if(manual) out.push({type:'manual',side,arm:manual});
+  }
+  // Unknown hand labels are still useful.
+  for(const h of S.hands){
+    if(h.side!=='Left'&&h.side!=='Right')out.push({type:'auto',side:h.side,h});
+  }
+  return out;
+}
+function manualArmPath(arm){
+  if(!arm?.points||arm.points.length<3)return null;
+  const [entry,wrist,palm]=arm.points;
+  // Continue a short distance past palm toward the hand/fingers.
+  let dx=palm.x-wrist.x,dy=palm.y-wrist.y,d=Math.hypot(dx,dy);
+  if(d<2){dx=0;dy=-1;d=1}
+  dx/=d;dy/=d;
+  const tip={x:palm.x+dx*Math.max(24,arm.width*.85),y:palm.y+dy*Math.max(24,arm.width*.85)};
+  return [entry,wrist,palm,tip];
+}
+function drawManualArmBand(arm,width,fill,outline=null,outlineWidth=2){
+  const path=manualArmPath(arm);
+  if(!path)return;
+  ctx.save();
+  ctx.lineCap='round';ctx.lineJoin='round';
+  traceSmoothPath(path);
+  ctx.strokeStyle=fill;ctx.lineWidth=width;ctx.stroke();
+
+  // Palm/body blob at the end of the calibrated forearm.
+  const palm=arm.points[2];
+  ctx.beginPath();
+  ctx.arc(palm.x,palm.y,width*.43,0,Math.PI*2);
+  ctx.fillStyle=fill;ctx.fill();
+
+  if(outline){
+    traceSmoothPath(path);
+    ctx.strokeStyle=outline;ctx.lineWidth=Math.max(1.5,outlineWidth);ctx.stroke();
+    ctx.beginPath();ctx.arc(palm.x,palm.y,width*.43,0,Math.PI*2);
+    ctx.strokeStyle=outline;ctx.lineWidth=Math.max(1.5,outlineWidth);ctx.stroke();
+  }
+  ctx.restore();
+}
+function armCenterForRelation(item){
+  if(item.type==='auto')return {x:item.h.cx,y:item.h.cy};
+  const p=item.arm?.points?.[2];
+  return p?{x:p.x,y:p.y}:null;
+}
 function nearestHandInfo(){
-  if(!S.ball||!S.hands.length)return null;
-  return S.hands.map(h=>({h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d)[0]||null;
+  if(!S.ball)return null;
+  if(S.hands.length){
+    return S.hands.map(h=>({type:'auto',h,d:d3(S.ball,h)})).sort((a,b)=>a.d-b.d)[0]||null;
+  }
+  const manual=renderArms().filter(a=>a.type==='manual');
+  if(!manual.length)return null;
+  return manual.map(item=>{
+    const c=armCenterForRelation(item);
+    return {type:'manual',item,d:Math.hypot(S.ball.cx-c.x,S.ball.cy-c.y)};
+  }).sort((a,b)=>a.d-b.d)[0]||null;
+}
+function maskCanvas(){
+  const c=document.createElement('canvas');
+  c.width=canvas.width;c.height=canvas.height;
+  return c;
+}
+function maskCapsule(ctx2,a,b,width){
+  if(!a||!b)return;
+  ctx2.save();
+  ctx2.strokeStyle='#fff';
+  ctx2.lineCap='round';ctx2.lineJoin='round';
+  ctx2.lineWidth=Math.max(2,width);
+  ctx2.beginPath();ctx2.moveTo(a.x,a.y);ctx2.lineTo(b.x,b.y);ctx2.stroke();
+  ctx2.restore();
+}
+function dilateMask(mask,r){
+  const out=maskCanvas(),o=out.getContext('2d');
+  if(!mask)return out;
+  r=Math.max(0,r);
+  o.drawImage(mask,0,0);
+  if(r<1)return out;
+  const rings=[[r,28],[r*.56,16],[r*.28,10]];
+  for(const [rad,n] of rings){
+    for(let i=0;i<n;i++){
+      const a=i/n*Math.PI*2;
+      o.drawImage(mask,Math.cos(a)*rad,Math.sin(a)*rad);
+    }
+  }
+  return out;
+}
+function subtractMask(a,b){
+  const out=maskCanvas(),o=out.getContext('2d');
+  if(a)o.drawImage(a,0,0);
+  o.globalCompositeOperation='destination-out';
+  if(b)o.drawImage(b,0,0);
+  o.globalCompositeOperation='source-over';
+  return out;
+}
+function mergeMasks(...masks){
+  const out=maskCanvas(),o=out.getContext('2d');
+  for(const m of masks)if(m)o.drawImage(m,0,0);
+  return out;
+}
+function colorMask(mask,color){
+  if(!mask)return;
+  const tmp=maskCanvas(),t=tmp.getContext('2d');
+  t.drawImage(mask,0,0);
+  t.globalCompositeOperation='source-in';
+  t.fillStyle=color;
+  t.fillRect(0,0,tmp.width,tmp.height);
+  ctx.drawImage(tmp,0,0);
+}
+function autoHandBodyMask(h){
+  const c=maskCanvas(),m=c.getContext('2d');
+  const core=armWidthPx(h);
+  const lm=h.lm||[];
+
+  // Forearm: inferred image-border entry -> wrist.
+  const entry=forearmEntryPoint(h);
+  const wrist=lm[0]||{x:h.cx,y:h.cy};
+  maskCapsule(m,entry,wrist,core);
+
+  // Palm polygon.
+  const palmIds=[0,1,2,5,9,13,17];
+  const palmPts=palmIds.map(i=>lm[i]).filter(Boolean);
+  if(palmPts.length>=4){
+    m.fillStyle='#fff';
+    m.beginPath();m.moveTo(palmPts[0].x,palmPts[0].y);
+    for(let i=1;i<palmPts.length;i++)m.lineTo(palmPts[i].x,palmPts[i].y);
+    m.closePath();m.fill();
+    m.strokeStyle='#fff';m.lineJoin='round';m.lineWidth=core*.34;m.stroke();
+  }
+
+  // Fingers become true mask branches, instead of one central tube.
+  const fingerChains=[[0,1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]];
+  for(const chain of fingerChains){
+    for(let i=0;i<chain.length-1;i++){
+      const a=lm[chain[i]],b=lm[chain[i+1]];
+      if(!a||!b)continue;
+      const taper=1-i/(chain.length-1)*.38;
+      maskCapsule(m,a,b,Math.max(7,core*.25*taper));
+    }
+  }
+
+  // Wrist/palm bridge.
+  m.fillStyle='#fff';
+  m.beginPath();m.arc(h.cx,h.cy,Math.max(10,core*.42),0,Math.PI*2);m.fill();
+  return c;
+}
+function manualArmBodyMask(arm){
+  if(!arm?.points||arm.points.length<3)return null;
+  const c=maskCanvas(),m=c.getContext('2d');
+  const path=manualArmPath(arm),w=arm.width||54;
+  if(!path)return null;
+  m.save();
+  m.strokeStyle='#fff';m.lineCap='round';m.lineJoin='round';m.lineWidth=w;
+  m.beginPath();m.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++)m.lineTo(path[i].x,path[i].y);
+  m.stroke();m.restore();
+  const palm=arm.points[2];
+  m.fillStyle='#fff';m.beginPath();m.arc(palm.x,palm.y,w*.48,0,Math.PI*2);m.fill();
+  return c;
+}
+function skinRefineMask(h,baseMask){
+  // Optional first-person skin refinement. It is constrained by the geometric
+  // mask so it can improve the contour without flooding into the whole image.
+  if(!ensureRaw()||!h?.lm?.length)return baseMask;
+
+  const scale=.5;
+  const sw=Math.max(1,Math.round(canvas.width*scale));
+  const sh=Math.max(1,Math.round(canvas.height*scale));
+  const frame=document.createElement('canvas');frame.width=sw;frame.height=sh;
+  const f=frame.getContext('2d',{willReadFrequently:true});
+  f.drawImage(rawCanvas,0,0,sw,sh);
+
+  const broad=dilateMask(baseMask,Math.max(10,armWidthPx(h)*.38));
+  const broadSmall=document.createElement('canvas');broadSmall.width=sw;broadSmall.height=sh;
+  broadSmall.getContext('2d').drawImage(broad,0,0,sw,sh);
+
+  let img,maskData;
+  try{
+    img=f.getImageData(0,0,sw,sh);
+    maskData=broadSmall.getContext('2d').getImageData(0,0,sw,sh);
+  }catch{return baseMask}
+
+  const sampleIds=[0,5,9,13,17];
+  let sr=0,sg=0,sb=0,n=0;
+  for(const id of sampleIds){
+    const p=h.lm[id];if(!p)continue;
+    const x=Math.max(0,Math.min(sw-1,Math.round(p.x*scale)));
+    const y=Math.max(0,Math.min(sh-1,Math.round(p.y*scale)));
+    const k=(y*sw+x)*4;
+    const r=img.data[k],g=img.data[k+1],b=img.data[k+2],sum=r+g+b+1;
+    sr+=r/sum;sg+=g/sum;sb+=b/sum;n++;
+  }
+  if(!n)return baseMask;
+  sr/=n;sg/=n;sb/=n;
+
+  const candidate=new Uint8Array(sw*sh);
+  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+    const j=y*sw+x,k=j*4;
+    if(maskData.data[k+3]<20)continue;
+    const r=img.data[k],g=img.data[k+1],b=img.data[k+2];
+    const sum=r+g+b+1,rr=r/sum,gg=g/sum,bb=b/sum;
+    const chroma=Math.hypot(rr-sr,gg-sg,bb-sb);
+    const lum=(r+g+b)/3;
+    if(chroma<.105&&lum>28)candidate[j]=1;
+  }
+
+  // Flood-fill from wrist/palm seeds so similarly colored walls don't join.
+  const seen=new Uint8Array(sw*sh),queue=[];
+  for(const id of [0,9,5,17]){
+    const p=h.lm[id];if(!p)continue;
+    const x=Math.max(0,Math.min(sw-1,Math.round(p.x*scale)));
+    const y=Math.max(0,Math.min(sh-1,Math.round(p.y*scale)));
+    const j=y*sw+x;
+    for(let oy=-2;oy<=2;oy++)for(let ox=-2;ox<=2;ox++){
+      const xx=x+ox,yy=y+oy;
+      if(xx<0||yy<0||xx>=sw||yy>=sh)continue;
+      const jj=yy*sw+xx;
+      if(candidate[jj]&&!seen[jj]){seen[jj]=1;queue.push(jj)}
+    }
+  }
+  for(let qi=0;qi<queue.length;qi++){
+    const j=queue[qi],x=j%sw,y=(j/sw)|0;
+    const ns=[j-1,j+1,j-sw,j+sw];
+    for(const q of ns){
+      if(q<0||q>=seen.length||seen[q]||!candidate[q])continue;
+      const qx=q%sw,qy=(q/sw)|0;
+      if(Math.abs(qx-x)+Math.abs(qy-y)!==1)continue;
+      seen[q]=1;queue.push(q);
+    }
+  }
+  if(queue.length<45)return baseMask;
+
+  const skinSmall=document.createElement('canvas');skinSmall.width=sw;skinSmall.height=sh;
+  const sm=skinSmall.getContext('2d'),out=sm.createImageData(sw,sh);
+  for(let j=0;j<seen.length;j++)if(seen[j])out.data[j*4+3]=255;
+  sm.putImageData(out,0,0);
+
+  const skin=maskCanvas(),sk=skin.getContext('2d');
+  sk.imageSmoothingEnabled=true;sk.drawImage(skinSmall,0,0,canvas.width,canvas.height);
+
+  // Base landmarks guarantee continuity; skin pixels add real contour bulges.
+  return mergeMasks(baseMask,skin);
+}
+function rebuildArmMasks(now,force=false){
+  if(!force&&now-S.lastMaskAt<80&&S.armMasks.length)return;
+  S.lastMaskAt=now;
+
+  const masks=[];
+  for(const side of ['Left','Right']){
+    const h=S.hands.find(x=>x.side===side);
+    const manual=S.manualArms[side];
+    if(h){
+      let body=autoHandBodyMask(h);
+      if(!h.stale)body=skinRefineMask(h,body);
+      masks.push({side,type:'auto',body,core:armWidthPx(h),h});
+    }else if(manual){
+      const body=manualArmBodyMask(manual);
+      if(body)masks.push({side,type:'manual',body,core:manual.width||54,arm:manual});
+    }
+  }
+  for(const h of S.hands){
+    if(h.side==='Left'||h.side==='Right')continue;
+    let body=autoHandBodyMask(h);
+    if(!h.stale)body=skinRefineMask(h,body);
+    masks.push({side:h.side,type:'auto',body,core:armWidthPx(h),h});
+  }
+  S.armMasks=masks;
+}
+function maskAnchor(item){
+  if(item.type==='auto')return {x:item.h.cx,y:item.h.cy};
+  return item.arm?.points?.[2]||null;
+}
+function nearestMaskToBall(){
+  if(!S.ball||!S.armMasks.length)return null;
+  return S.armMasks.map(item=>{
+    const p=maskAnchor(item);
+    return {item,d:p?Math.hypot(S.ball.cx-p.x,S.ball.cy-p.y):Infinity};
+  }).sort((a,b)=>a.d-b.d)[0]||null;
 }
 function drawVideoPps(){
-  if(!P.showVideoPps||!S.hands.length)return;
+  if(!P.showVideoPps)return;
+  rebuildArmMasks(performance.now());
+  if(!S.armMasks.length)return;
 
   const alpha=P.videoAlpha;
-  const state=ballStateInfo();
-  const nearest=nearestHandInfo();
-  const nearestHand=nearest?.h||null;
+  const nearest=nearestMaskToBall();
 
-  ctx.save();
+  for(const item of S.armMasks){
+    const core=item.core;
+    // If red body total width = W, adding W*0.25 on both sides produces 1.5W.
+    const ppsRadius=Math.max(7,core*.25);
+    const farRadius=Math.max(12,core*.48);
 
-  for(const h of S.hands){
-    const core=armWidthPx(h);
-    const yellowW=core*1.50;
-    const blueW=core*2.20;
-    const fade=h.stale?.62:1;
+    const ppsOuter=dilateMask(item.body,ppsRadius);
+    const ppsRing=subtractMask(ppsOuter,item.body);
+    const farOuter=dilateMask(ppsOuter,farRadius);
+    const farRing=subtractMask(farOuter,ppsOuter);
 
-    const ballNear=S.ball&&nearestHand===h;
-    const ppsActive=ballNear&&['pps','work','contact'].includes(state.key);
-    const contactActive=ballNear&&state.key==='contact';
+    let activePps=false,activeBody=false;
+    if(S.ball&&nearest?.item===item){
+      // Pixel-space mask test for interaction, matching what is actually drawn.
+      const test=(mask,x,y)=>{
+        try{
+          const d=mask.getContext('2d').getImageData(
+            Math.max(0,Math.min(mask.width-1,Math.round(x))),
+            Math.max(0,Math.min(mask.height-1,Math.round(y))),1,1
+          ).data;
+          return d[3]>20;
+        }catch{return false}
+      };
+      activeBody=test(item.body,S.ball.cx,S.ball.cy);
+      activePps=!activeBody&&test(ppsOuter,S.ball.cx,S.ball.cy);
+    }
 
-    // Outer BLUE band.
-    drawArmBand(
-      h,
-      blueW,
-      `rgba(70,139,214,${Math.min(.58,alpha*.90)*fade})`,
-      `rgba(110,167,225,${Math.min(.92,alpha*1.65)*fade})`,
-      Math.max(2,canvas.width/600)
-    );
-
-    // YELLOW PPS = 1.5× red/core width.
-    drawArmBand(
-      h,
-      yellowW,
-      ppsActive
-        ? `rgba(255,213,70,${Math.min(.78,alpha*1.55)*fade})`
-        : `rgba(255,216,75,${Math.min(.66,alpha*1.15)*fade})`,
-      ppsActive
-        ? `rgba(255,239,150,${Math.min(1,alpha*2.15)*fade})`
-        : `rgba(255,225,100,${Math.min(.95,alpha*1.75)*fade})`,
-      ppsActive?Math.max(4,canvas.width/390):Math.max(2.5,canvas.width/520)
-    );
-
-    // RED body / arm / hand core.
-    drawArmBand(
-      h,
-      core,
-      contactActive
-        ? `rgba(255,48,58,${Math.min(.96,alpha*2.15)*fade})`
-        : `rgba(239,73,76,${Math.min(.90,alpha*1.82)*fade})`,
-      `rgba(255,105,108,${Math.min(1,alpha*2.35)*fade})`,
-      Math.max(3,canvas.width/470)
-    );
-
-    // Palm center marker.
-    ctx.beginPath();
-    ctx.arc(h.cx,h.cy,Math.max(3.5,core*.055),0,Math.PI*2);
-    ctx.fillStyle=h.stale?'rgba(255,255,255,.38)':'rgba(255,255,255,.78)';
-    ctx.fill();
+    // Same order as PoseTwin: far blue -> PPS yellow -> body red.
+    colorMask(farRing,`rgba(28,116,210,${Math.min(.42,alpha*.62)})`);
+    colorMask(ppsRing,activePps
+      ?`rgba(255,214,55,${Math.min(.78,alpha*1.50)})`
+      :`rgba(255,214,55,${Math.min(.58,alpha*.92)})`);
+    colorMask(item.body,activeBody
+      ?`rgba(255,50,58,${Math.min(.94,alpha*1.90)})`
+      :`rgba(255,70,75,${Math.min(.78,alpha*1.46)})`);
   }
 
-  if(S.ball&&nearestHand){
-    ctx.beginPath();
-    ctx.moveTo(S.ball.cx,S.ball.cy);
-    ctx.lineTo(nearestHand.cx,nearestHand.cy);
-    ctx.strokeStyle =
-      state.key==='contact' ? '#ff333b' :
-      state.key==='work' ? '#ff9d4d' :
-      state.key==='pps' ? '#ffdc49' :
-      '#70a7e1';
-    ctx.lineWidth=Math.max(2.5,canvas.width/560);
-    ctx.setLineDash(state.key==='extra'?[8,6]:[]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  if(S.ball&&nearest){
+    const p=maskAnchor(nearest.item);
+    if(p){
+      ctx.save();
+      ctx.beginPath();ctx.moveTo(S.ball.cx,S.ball.cy);ctx.lineTo(p.x,p.y);
+      ctx.strokeStyle='#ffd637';ctx.lineWidth=Math.max(2,canvas.width/600);
+      ctx.setLineDash([7,5]);ctx.stroke();ctx.restore();
+    }
   }
-
-  ctx.restore();
 }
 
 // ---------- video overlay ----------
@@ -765,12 +1038,12 @@ function updateHandHud(){
   const held=S.hands.length-fresh;
   const suffix=held?`（${held} 暫存）`:'';
   if(video.paused && S.ready){
-    $('#detail').textContent=`目前影格：手部 ${S.hands.length} ${suffix} · 紅=本體 / 黃=1.5× PPS / 藍=外層`;
+    $('#detail').textContent=`目前影格：手部 ${S.hands.length} ${suffix} · MASK：紅本體 / 黃PPS / 藍外層`;
   }
 }
 
 function updateMetrics(){
-  $('#mHands').textContent=S.hands.length;
+  $('#mHands').textContent=S.hands.length || Object.values(S.manualArms).filter(Boolean).length;
   $('#mBall').textContent=S.ball?S.ball.z.toFixed(2)+' m':'—';
 
   const L=S.hands.find(h=>h.side==='Left'),R=S.hands.find(h=>h.side==='Right');
@@ -797,6 +1070,7 @@ function frameLoop(now){
       if(pausedRefresh)S.lastPausedAnalyze=now;
 
       analyzeHands(now);
+      rebuildArmMasks(now);
 
       // Never let the visual ball tracker drift while looking at the same paused frame.
       if(moved)trackBall(now);
@@ -816,11 +1090,59 @@ function frameLoop(now){
 
 // ---------- UI ----------
 function pointerXY(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-$('#pickBall').onclick=()=>{S.picking=!S.picking;$('#pickBall').classList.toggle('active',S.picking);setStatus(S.picking?'請點球中心':'已取消指定',S.picking?'暫停影片後點球中心效果最好':'')};
+$('#pickBall').onclick=()=>{S.armPick=null;$('#pickLeftArm').classList.remove('active');$('#pickRightArm').classList.remove('active');S.picking=!S.picking;$('#pickBall').classList.toggle('active',S.picking);setStatus(S.picking?'請點球中心':'已取消指定',S.picking?'暫停影片後點球中心效果最好':'')};
 $('#clearBall').onclick=()=>{S.ball=null;S.lastState='';buildField();updateMetrics();$('#renderState').textContent='等待球';setStatus('球追蹤已清除','可重新指定球')};
-canvas.addEventListener('pointerdown',e=>{if(!S.picking||!video.videoWidth)return;const p=pointerXY(e);setBallAt(p.x,p.y);drawVideo();buildField()});
+canvas.addEventListener('pointerdown',e=>{
+  if(!video.videoWidth)return;
+  const p=pointerXY(e);
+
+  if(S.armPick){
+    S.armPick.points.push(p);
+    const n=S.armPick.points.length;
+    const sideTxt=S.armPick.side==='Left'?'左臂':'右臂';
+    if(n<3){
+      $('#armCalStatus').textContent=`${sideTxt}：已取 ${n}/3 點；${n===1?'請點手腕':'請點掌心'}`;
+      return;
+    }
+    S.manualArms[S.armPick.side]={
+      points:S.armPick.points.slice(0,3),
+      width:+$('#manualArmW').value
+    };
+    $('#armCalStatus').textContent=`${sideTxt}校正完成。AI 抓不到時會使用手動紅/黃/藍包絡。`;
+    S.armPick=null;S.armMasks=[];
+    $('#pickLeftArm').classList.remove('active');
+    $('#pickRightArm').classList.remove('active');
+    drawVideo();updateMetrics();
+    return;
+  }
+
+  if(S.picking){
+    setBallAt(p.x,p.y);drawVideo();buildField();
+  }
+});
 $('#pickR').addEventListener('input',()=>$('#oPickR').value=$('#pickR').value+' px');
 $('#showVideoPps').addEventListener('change',()=>{P.showVideoPps=$('#showVideoPps').checked;drawVideo();});
+function beginArmPick(side){
+  S.picking=false;$('#pickBall').classList.remove('active');
+  S.armPick={side,points:[]};
+  $('#pickLeftArm').classList.toggle('active',side==='Left');
+  $('#pickRightArm').classList.toggle('active',side==='Right');
+  $('#armCalStatus').textContent=`${side==='Left'?'左臂':'右臂'}：請先點「手臂進入畫面的點 / 前臂下端」`;
+}
+$('#pickLeftArm').onclick=()=>beginArmPick('Left');
+$('#pickRightArm').onclick=()=>beginArmPick('Right');
+$('#clearArms').onclick=()=>{
+  S.manualArms={Left:null,Right:null};S.armPick=null;S.armMasks=[];
+  $('#pickLeftArm').classList.remove('active');$('#pickRightArm').classList.remove('active');
+  $('#armCalStatus').textContent='已清除手動臂校正。';
+  drawVideo();updateMetrics();
+};
+$('#manualArmW').addEventListener('input',()=>{
+  $('#oManualArmW').value=$('#manualArmW').value+' px';
+  for(const side of ['Left','Right'])if(S.manualArms[side])S.manualArms[side].width=+$('#manualArmW').value;
+  S.armMasks=[];drawVideo();
+});
+
 $('#videoAlpha').addEventListener('input',()=>{P.videoAlpha=+$('#videoAlpha').value/100;$('#oVideoAlpha').value=Math.round(P.videoAlpha*100)+'%';drawVideo();});
 
 
@@ -830,7 +1152,7 @@ $('#videoFile').addEventListener('change',e=>{
   video.onloadedmetadata=()=>{
     canvas.width=video.videoWidth;canvas.height=video.videoHeight;
     $('#play').disabled=false;$('#pause').disabled=false;$('#seek').disabled=false;
-    S.ball=null;S.hands=[];S.events=[];S.lastState='';$('#events').innerHTML='<div class="event">尚無球事件</div>';
+    S.ball=null;S.hands=[];S.armMasks=[];S.manualArms={Left:null,Right:null};S.armPick=null;S.events=[];S.lastState='';$('#armCalStatus').textContent='未校正。AI 有抓到手時仍會自動顯示。';$('#events').innerHTML='<div class="event">尚無球事件</div>';
     setStatus(S.ready?'影片已載入':'影片已載入 / 手部模型未就緒',video.videoWidth+'×'+video.videoHeight+' · '+fmt(video.duration)+' · 請指定球');
     drawVideo();buildField();updateMetrics();
   }
