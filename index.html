@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV Teaching v3.0</title>
+<title>PoseTwin POV Teaching v3.0.1.1</title>
 <style>
 :root{
   color-scheme:dark;
@@ -69,7 +69,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v3.0</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v3.0.1</span></h1>
       <div class="subtitle">第一人稱近體空間教學 · 紅色本體 → 黃色 PPS → 藍色外層</div>
     </div>
     <span class="badge">重新設計 · Browser-only</span>
@@ -227,7 +227,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
     </div>
   </div>
 
-  <div class="footer">PoseTwin POV Teaching v3.0 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
+  <div class="footer">PoseTwin POV Teaching v3.0.1.1 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -253,6 +253,7 @@ function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).pa
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function lerp(a,b,t){return a+(b-a)*t}
 function lerpPoint(a,b,t){return{x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)}}
+function cloneArmKey(k){return {time:k.time,width:k.width,points:k.points.map(p=>({x:p.x,y:p.y}))}}
 
 function setCanvasSize(){
   if(!video.videoWidth)return;
@@ -331,9 +332,9 @@ function addArmKey(side,points){
 function resolveManualArm(side,t){
   const list=S.armKeys[side];
   if(!list.length)return null;
-  if(list.length===1)return structuredClone(list[0]);
-  if(t<=list[0].time)return structuredClone(list[0]);
-  if(t>=list[list.length-1].time)return structuredClone(list[list.length-1]);
+  if(list.length===1)return cloneArmKey(list[0]);
+  if(t<=list[0].time)return cloneArmKey(list[0]);
+  if(t>=list[list.length-1].time)return cloneArmKey(list[list.length-1]);
   for(let i=0;i<list.length-1;i++){
     const a=list[i],b=list[i+1];
     if(t>=a.time&&t<=b.time){
@@ -344,7 +345,7 @@ function resolveManualArm(side,t){
       };
     }
   }
-  return structuredClone(list[0]);
+  return cloneArmKey(list[0]);
 }
 
 function refreshKeyList(){
@@ -531,6 +532,78 @@ function zoneInfo(){
     return{key:'far',label:'藍色：遠體空間',source:'Far space'};
 
   return{key:'outside',label:'遠體空間之外',source:'—'};
+}
+
+
+function addBallKey(x,y,r){
+  const t=video.currentTime||0;
+  const key={time:t,cx:x,cy:y,r:r||P.ballR};
+  const near=S.ballKeys.findIndex(k=>Math.abs(k.time-t)<.08);
+  if(near>=0)S.ballKeys[near]=key;
+  else S.ballKeys.push(key);
+  S.ballKeys.sort((a,b)=>a.time-b.time);
+  refreshBallKeyList();
+}
+
+function resolveBallKey(t){
+  const list=S.ballKeys;
+  if(!list.length)return null;
+  if(list.length===1)return {...list[0],mode:'key'};
+  if(t<=list[0].time)return {...list[0],mode:'key'};
+  if(t>=list[list.length-1].time)return {...list[list.length-1],mode:'key'};
+
+  for(let i=0;i<list.length-1;i++){
+    const a=list[i],b=list[i+1];
+    if(t>=a.time&&t<=b.time){
+      const u=(t-a.time)/(b.time-a.time||1);
+      return{
+        time:t,
+        cx:lerp(a.cx,b.cx,u),
+        cy:lerp(a.cy,b.cy,u),
+        r:lerp(a.r,b.r,u),
+        mode:'interp'
+      };
+    }
+  }
+  return null;
+}
+
+function refreshBallKeyList(){
+  if(!S.ballKeys.length){
+    $('#ballKeyList').innerHTML='<div class="event">尚無球關鍵影格</div>';
+    return;
+  }
+  $('#ballKeyList').innerHTML=S.ballKeys.map(k=>`
+    <div class="keyItem">
+      <span><b>球</b> · ${fmt(k.time)} · r=${Math.round(k.r)}px</span>
+      <button class="btn delBallKey" data-time="${k.time}" style="padding:5px 8px">刪除</button>
+    </div>`).join('');
+
+  document.querySelectorAll('.delBallKey').forEach(btn=>{
+    btn.onclick=()=>{
+      const t=+btn.dataset.time;
+      S.ballKeys=S.ballKeys.filter(k=>Math.abs(k.time-t)>.001);
+      refreshBallKeyList();
+      redraw();
+    };
+  });
+}
+
+function useBallKeyframeIfAvailable(){
+  const k=resolveBallKey(video.currentTime||0);
+  if(!k)return false;
+
+  if(!S.ball){
+    S.ball={cx:k.cx,cy:k.cy,r:k.r,hist:null,lost:0};
+  }else{
+    S.ball.cx=k.cx;
+    S.ball.cy=k.cy;
+    S.ball.r=k.r;
+  }
+
+  S.ballTrackMode=k.mode==='interp'?'關鍵影格插值':'球關鍵影格';
+  S.ballTrackConfidence=1;
+  return true;
 }
 
 // ---------- ball tracker ----------
@@ -799,7 +872,7 @@ $('#exportFrame').onclick=()=>{
   redraw();const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`PoseTwin-POV-${Math.round(video.currentTime*1000)}ms.png`;a.click();
 };
 $('#exportJson').onclick=()=>{
-  const data={version:'PoseTwin POV Teaching v3.0',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys}};
+  const data={version:'PoseTwin POV Teaching v3.0.1.1',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys}};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='posetwin-pov-teaching.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 };
 $('#importJson').onchange=async e=>{
@@ -823,7 +896,16 @@ $('#importJson').onchange=async e=>{
 window.addEventListener('error',e=>setStatus('程式錯誤',e.message||'未知錯誤'));
 window.addEventListener('unhandledrejection',e=>setStatus('載入錯誤',e.reason?.message||String(e.reason||'')));
 
-refreshKeyList();refreshBallKeyList();updateUI();requestAnimationFrame(loop);initHands();
+try{
+  refreshKeyList();
+  refreshBallKeyList();
+  updateUI();
+  requestAnimationFrame(loop);
+  initHands();
+}catch(e){
+  console.error(e);
+  setStatus('程式錯誤',e?.message||String(e));
+}
 </script>
 </body>
 </html>
