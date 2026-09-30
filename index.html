@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV Teaching v3.0.1.1</title>
+<title>PoseTwin POV Teaching v3.2.1</title>
 <style>
 :root{
   color-scheme:dark;
@@ -69,10 +69,10 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v3.0.1</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v3.2</span></h1>
       <div class="subtitle">第一人稱近體空間教學 · 紅色本體 → 黃色 PPS → 藍色外層</div>
     </div>
-    <span class="badge">重新設計 · Browser-only</span>
+    <span class="badge">v3.2 · Pixel Hand Segmentation</span>
   </div>
 
   <div class="layout">
@@ -106,7 +106,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
         </div>
 
         <div class="statusline" id="interactionHint" style="margin-top:10px">
-          操作：若 AI 沒抓到手，暫停影片 → 點「左臂/右臂關鍵影格」→ 依序點 <b>前臂入口 → 手腕 → 掌心</b>。
+          操作：系統會優先嘗試像素級手部分割。若輪廓不準，可暫停影片 → 點「分割目前左手/右手」→ 再點手掌中心。若仍失敗，再使用手臂關鍵影格。
           可在不同時間點重複標記，播放時會自動插值。
         </div>
 
@@ -127,9 +127,19 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 
         <div class="row">
           <label class="small"><input id="useAI" type="checkbox" checked> AI 手部輔助</label>
+          <label class="small"><input id="useSeg" type="checkbox" checked> 像素手部分割</label>
           <label class="small"><input id="preferKeys" type="checkbox" checked> 關鍵影格優先</label>
           <label class="small"><input id="showSkeleton" type="checkbox"> 顯示手部骨架</label>
           <label class="small"><input id="showCenter" type="checkbox"> 顯示中心線</label>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="segLeft" class="btn">✋ 分割目前左手</button>
+          <button id="segRight" class="btn">✋ 分割目前右手</button>
+          <button id="clearSeg" class="btn">清除手部分割</button>
+        </div>
+        <div class="ctrl">
+          <div class="ctrlHead"><label>手部分割門檻</label><output id="oSegThreshold">45%</output></div>
+          <input id="segThreshold" type="range" min="25" max="75" step="1" value="45">
         </div>
         <div class="row" style="margin-top:10px">
           <span class="small">空間預設：</span>
@@ -160,7 +170,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
           <div class="legend" style="margin-top:10px">
             <div class="legendRow"><span class="dot" style="background:var(--red)"></span><div><b>本體</b><div class="small">body mask</div></div></div>
             <div class="legendRow"><span class="dot" style="background:var(--yellow)"></span><div><b>近體空間</b><div class="small">本系統以身體輪廓向外擴張的方式呈現 PPS，僅作教學視覺化。</div></div></div>
-            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>外層空間</b><div class="small">PPS 外緣再向外擴張</div></div></div>
+            <div class="legendRow"><span class="dot" style="background:var(--blue)"></span><div><b>遠體空間</b><div class="small">依照與手部本體的距離場形成，不再使用重複 dilate 疊圖。</div></div></div>
           </div>
         </div>
 
@@ -214,7 +224,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 
       <div class="card section">
         <h2>分析設定</h2>
-        <div class="envelopeNote">新版改成「合併雙手／前臂遮罩 → 黃色 PPS 外擴 → 藍色遠體外擴」。因此紅色只留在本體，黃色與藍色形成一個連續的大包絡。</div>
+        <div class="envelopeNote">新版改成「紅色手部本體 → 距離場 → 黃色 PPS → 藍色遠體空間」。黃色與藍色不再重複堆疊手部 mask，因此邊界會更連續、平滑。</div>
         <div class="ctrl"><div class="ctrlHead"><label>球圈半徑</label><output id="oBallR">38 px</output></div><input id="ballR" type="range" min="12" max="120" step="1" value="38"></div>
         <div class="ctrl"><div class="ctrlHead"><label>黃色 PPS 距離</label><output id="oPpsScale">140 px</output></div><input id="ppsScale" type="range" min="40" max="320" step="5" value="140"></div>
         <div class="ctrl"><div class="ctrlHead"><label>藍色遠體距離</label><output id="oFar">210 px</output></div><input id="farScale" type="range" min="60" max="420" step="5" value="210"></div>
@@ -227,7 +237,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
     </div>
   </div>
 
-  <div class="footer">PoseTwin POV Teaching v3.0.1.1 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
+  <div class="footer">PoseTwin POV Teaching v3.2.1 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -238,6 +248,9 @@ const canvas=$('#videoCanvas'),ctx=canvas.getContext('2d'),video=$('#video');
 
 const S={
   hand:null,handReady:false,handError:null,hands:[],
+  segmenter:null,segmenterReady:false,segmenterError:null,brushMode:null,
+  autoSegMasks:{Left:null,Right:null},manualSegMasks:{Left:null,Right:null},
+  segPick:null,lastSegAt:0,
   lastHandAt:0,lastVideoTime:-1,lastPausedAt:0,
   pickingBall:false,armPick:null,
   armKeys:{Left:[],Right:[]},
@@ -246,7 +259,7 @@ const S={
   masks:[],events:[],lastZone:'none',
   compare:{A:null,B:null}
 };
-const P={alpha:.52,manualArmW:54,ppsScale:140,farScale:210,useAI:true,preferKeys:true,showSkeleton:false,showCenter:false,ballR:38};
+const P={alpha:.52,manualArmW:54,ppsScale:140,farScale:210,useAI:true,useSeg:true,segThreshold:.45,preferKeys:true,showSkeleton:false,showCenter:false,ballR:38};
 
 function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b }
 function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
@@ -269,6 +282,7 @@ function pointerXY(e){
 
 // ---------- MediaPipe hand assist ----------
 const HAND_MODEL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const SEG_MODEL='https://storage.googleapis.com/mediapipe-models/interactive_segmenter_v2/magic_touch/int8/latest/interactive_segmentation.task';
 
 async function initHands(){
   if(!P.useAI){setStatus('已就緒','AI 關閉；可使用手臂關鍵影格');return}
@@ -288,6 +302,142 @@ async function initHands(){
   }catch(e){
     S.handError=e;
     setStatus('AI 手部輔助不可用','仍可完整使用手臂關鍵影格教學模式');
+  }
+}
+
+
+async function initSegmenter(){
+  try{
+    const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/+esm');
+    const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm');
+    S.segmenter=await mp.InteractiveSegmenter.createFromOptions(vision,{
+      baseOptions:{modelAssetPath:SEG_MODEL}
+    });
+    S.brushMode=mp.BrushMode;
+    S.segmenterReady=true;
+    if(S.handReady)setStatus('手部模型已就緒','像素分割 + 手部 landmarks 可使用');
+  }catch(e){
+    console.warn('InteractiveSegmenter',e);
+    S.segmenterError=e;
+    S.segmenterReady=false;
+  }
+}
+
+function mpMaskToBodyCanvas(mask,seedX,seedY){
+  if(!mask)return null;
+  const w=mask.width,h=mask.height;
+  const data=mask.getAsFloat32Array();
+  const cand=new Uint8Array(w*h);
+  const th=P.segThreshold;
+
+  for(let i=0;i<cand.length;i++) if(data[i]>=th)cand[i]=1;
+
+  let sx=clamp(Math.round(seedX*w),0,w-1);
+  let sy=clamp(Math.round(seedY*h),0,h-1);
+  let seed=sy*w+sx;
+
+  // If the exact click is below threshold, find the nearest foreground pixel.
+  if(!cand[seed]){
+    let found=-1;
+    outer:
+    for(let r=1;r<=Math.max(12,Math.round(Math.min(w,h)*.08));r++){
+      for(let oy=-r;oy<=r;oy++){
+        for(const ox of [-r,r]){
+          const x=sx+ox,y=sy+oy;
+          if(x>=0&&y>=0&&x<w&&y<h&&cand[y*w+x]){found=y*w+x;break outer}
+        }
+      }
+      for(let ox=-r+1;ox<=r-1;ox++){
+        for(const oy of [-r,r]){
+          const x=sx+ox,y=sy+oy;
+          if(x>=0&&y>=0&&x<w&&y<h&&cand[y*w+x]){found=y*w+x;break outer}
+        }
+      }
+    }
+    if(found<0)return null;
+    seed=found;
+  }
+
+  // Keep only the connected component that contains the selected hand.
+  const seen=new Uint8Array(w*h);
+  const q=new Int32Array(w*h);
+  let head=0,tail=0;
+  q[tail++]=seed;seen[seed]=1;
+
+  while(head<tail){
+    const i=q[head++],x=i%w,y=(i/w)|0;
+    const ns=[
+      [x-1,y],[x+1,y],[x,y-1],[x,y+1],
+      [x-1,y-1],[x+1,y-1],[x-1,y+1],[x+1,y+1]
+    ];
+    for(const [xx,yy] of ns){
+      if(xx<0||yy<0||xx>=w||yy>=h)continue;
+      const j=yy*w+xx;
+      if(!seen[j]&&cand[j]){seen[j]=1;q[tail++]=j}
+    }
+  }
+
+  if(tail<Math.max(25,w*h*.0008))return null;
+
+  const small=document.createElement('canvas');
+  small.width=w;small.height=h;
+  const sc=small.getContext('2d');
+  const img=sc.createImageData(w,h);
+  for(let i=0;i<seen.length;i++){
+    if(seen[i]){
+      img.data[i*4]=255;
+      img.data[i*4+1]=255;
+      img.data[i*4+2]=255;
+      img.data[i*4+3]=255;
+    }
+  }
+  sc.putImageData(img,0,0);
+
+  const full=maskCanvas(),fc=full.getContext('2d');
+  fc.imageSmoothingEnabled=true;
+  fc.drawImage(small,0,0,canvas.width,canvas.height);
+  return full;
+}
+
+function segmentCurrentImageAt(x,y){
+  if(!S.segmenterReady||!S.segmenter||!video.videoWidth)return null;
+  try{
+    S.segmenter.setImage(video);
+    const nx=clamp(x/canvas.width,0,1),ny=clamp(y/canvas.height,0,1);
+    const mask=S.segmenter.segment([{
+      brushMode:S.brushMode.POSITIVE,
+      point:[{x:nx,y:ny}],
+      isCompleted:true
+    }]);
+    const body=mpMaskToBodyCanvas(mask,nx,ny);
+    try{mask.close()}catch{}
+    return body;
+  }catch(e){
+    console.warn('segmentCurrentImageAt',e);
+    return null;
+  }
+}
+
+function autoSegmentHands(now){
+  if(!P.useSeg||!S.segmenterReady||!S.hands.length||now-S.lastSegAt<280)return;
+  S.lastSegAt=now;
+  try{
+    S.segmenter.setImage(video);
+    for(const h of S.hands){
+      if(h.side!=='Left'&&h.side!=='Right')continue;
+      const p=h.lm?.[9]||{x:h.cx,y:h.cy};
+      const nx=clamp(p.x/canvas.width,0,1),ny=clamp(p.y/canvas.height,0,1);
+      const mask=S.segmenter.segment([{
+        brushMode:S.brushMode.POSITIVE,
+        point:[{x:nx,y:ny}],
+        isCompleted:true
+      }]);
+      const body=mpMaskToBodyCanvas(mask,nx,ny);
+      try{mask.close()}catch{}
+      if(body)S.autoSegMasks[h.side]={body,seenAt:now};
+    }
+  }catch(e){
+    console.warn('autoSegmentHands',e);
   }
 }
 
@@ -368,6 +518,7 @@ function refreshKeyList(){
 }
 
 function beginArmPick(side){
+  S.segPick=null;$('#segLeft').classList.remove('active');$('#segRight').classList.remove('active');
   if(!video.videoWidth)return;
   video.pause();
   S.pickingBall=false;$('#pickBall').classList.remove('active');
@@ -462,11 +613,142 @@ function bodyMaskFromManual(side,arm){
   m.fillStyle='#fff';m.beginPath();m.arc(palm.x,palm.y,w*.45,0,Math.PI*2);m.fill();
   return{body:c,width:w,anchor:palm,source:'Keyframe',side};
 }
+
+function buildDistanceEnvelope(bodyMask,ppsPx,farPx){
+  // Downsample for speed, then compute a 2-pass chamfer distance transform.
+  // No repeated image stamping / dilate is used here.
+  const scale=.25;
+  const sw=Math.max(2,Math.round(canvas.width*scale));
+  const sh=Math.max(2,Math.round(canvas.height*scale));
+
+  const small=document.createElement('canvas');
+  small.width=sw; small.height=sh;
+  const sm=small.getContext('2d',{willReadFrequently:true});
+  sm.imageSmoothingEnabled=true;
+  sm.drawImage(bodyMask,0,0,sw,sh);
+
+  let img;
+  try{ img=sm.getImageData(0,0,sw,sh); }
+  catch{ return null; }
+
+  const N=sw*sh;
+  const INF=1e9;
+  const dist=new Float32Array(N);
+
+  // 0 inside body; infinity outside.
+  for(let i=0;i<N;i++){
+    dist[i]=img.data[i*4+3]>24 ? 0 : INF;
+  }
+
+  // Chamfer weights approximate Euclidean distance.
+  const D1=1;
+  const D2=1.41421356;
+
+  // Forward pass.
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<sw;x++){
+      const i=y*sw+x;
+      let d=dist[i];
+      if(x>0) d=Math.min(d,dist[i-1]+D1);
+      if(y>0) d=Math.min(d,dist[i-sw]+D1);
+      if(x>0&&y>0) d=Math.min(d,dist[i-sw-1]+D2);
+      if(x<sw-1&&y>0) d=Math.min(d,dist[i-sw+1]+D2);
+      dist[i]=d;
+    }
+  }
+
+  // Backward pass.
+  for(let y=sh-1;y>=0;y--){
+    for(let x=sw-1;x>=0;x--){
+      const i=y*sw+x;
+      let d=dist[i];
+      if(x<sw-1) d=Math.min(d,dist[i+1]+D1);
+      if(y<sh-1) d=Math.min(d,dist[i+sw]+D1);
+      if(x<sw-1&&y<sh-1) d=Math.min(d,dist[i+sw+1]+D2);
+      if(x>0&&y<sh-1) d=Math.min(d,dist[i+sw-1]+D2);
+      dist[i]=d;
+    }
+  }
+
+  const ppsT=Math.max(1,ppsPx*scale);
+  const farT=Math.max(ppsT+1,(ppsPx+farPx)*scale);
+
+  const ppsSmall=document.createElement('canvas');
+  const farSmall=document.createElement('canvas');
+  ppsSmall.width=farSmall.width=sw;
+  ppsSmall.height=farSmall.height=sh;
+
+  const pc=ppsSmall.getContext('2d');
+  const fc=farSmall.getContext('2d');
+  const pImg=pc.createImageData(sw,sh);
+  const fImg=fc.createImageData(sw,sh);
+
+  for(let i=0;i<N;i++){
+    const d=dist[i];
+    if(d>0 && d<=ppsT){
+      pImg.data[i*4+3]=255;
+    }else if(d>ppsT && d<=farT){
+      fImg.data[i*4+3]=255;
+    }
+  }
+
+  pc.putImageData(pImg,0,0);
+  fc.putImageData(fImg,0,0);
+
+  const ppsRing=maskCanvas();
+  const farRing=maskCanvas();
+  const pctx=ppsRing.getContext('2d');
+  const fctx=farRing.getContext('2d');
+  pctx.imageSmoothingEnabled=true;
+  fctx.imageSmoothingEnabled=true;
+  pctx.drawImage(ppsSmall,0,0,canvas.width,canvas.height);
+  fctx.drawImage(farSmall,0,0,canvas.width,canvas.height);
+
+  // Build cumulative masks used by ball-zone judgement.
+  const ppsOuter=mergeMasks(bodyMask,ppsRing);
+  const farOuter=mergeMasks(ppsOuter,farRing);
+
+  return {body:bodyMask,ppsOuter,ppsRing,farOuter,farRing};
+}
+
 function buildMasks(){
   const out=[],t=video.currentTime||0,used=new Set();
+  const now=performance.now();
 
+  // 1) Manual pixel segmentation of the current/nearby teaching frame.
+  if(P.useSeg){
+    for(const side of ['Left','Right']){
+      const seg=S.manualSegMasks[side];
+      if(seg && Math.abs((seg.time||0)-t)<=.35){
+        out.push({body:seg.body,width:P.manualArmW,anchor:seg.anchor,source:'Pixel segmentation',side});
+        used.add(side);
+      }
+    }
+  }
+
+  // 2) Automatic pixel segmentation seeded by the hand landmark.
+  if(P.useSeg){
+    for(const side of ['Left','Right']){
+      if(used.has(side))continue;
+      const seg=S.autoSegMasks[side];
+      if(seg && now-seg.seenAt<900){
+        const h=S.hands.find(x=>x.side===side);
+        out.push({
+          body:seg.body,
+          width:h?armWidthFromHand(h):P.manualArmW,
+          anchor:h?{x:h.cx,y:h.cy}:null,
+          source:'Pixel segmentation',
+          side
+        });
+        used.add(side);
+      }
+    }
+  }
+
+  // 3) Teacher keyframes.
   if(P.preferKeys){
     for(const side of ['Left','Right']){
+      if(used.has(side))continue;
       const arm=resolveManualArm(side,t);
       if(arm){
         const m=bodyMaskFromManual(side,arm);
@@ -475,6 +757,7 @@ function buildMasks(){
     }
   }
 
+  // 4) Landmark geometry only as a fallback.
   if(P.useAI){
     for(const h of S.hands){
       if((h.side==='Left'||h.side==='Right')&&!used.has(h.side)){
@@ -496,18 +779,12 @@ function buildMasks(){
   }
 
   S.masks=out;
-
-  // Combined body envelope:
-  // red = body only
-  // yellow = body dilated outward, excluding body
-  // blue = PPS dilated outward, excluding PPS
   const combinedBody=mergeMasks(...out.map(m=>m.body));
-  const ppsOuter=dilate(combinedBody,Math.max(10,P.ppsScale));
-  const ppsRing=subtract(ppsOuter,combinedBody);
-  const farOuter=dilate(ppsOuter,Math.max(14,P.farScale));
-  const farRing=subtract(farOuter,ppsOuter);
-
-  S.envelope={body:combinedBody,ppsOuter,ppsRing,farOuter,farRing};
+  S.envelope=buildDistanceEnvelope(
+    combinedBody,
+    Math.max(10,P.ppsScale),
+    Math.max(10,P.farScale)
+  );
 }
 function maskHit(mask,x,y){
   if(!mask)return false;
@@ -701,7 +978,7 @@ function drawScene(){
   if(P.showCenter){ctx.save();ctx.strokeStyle='rgba(255,255,255,.18)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();ctx.restore()}
   buildMasks();
   if(S.envelope){
-    // Back to front: blue far-space -> yellow PPS -> red body.
+    // Distance-field rendering, back to front: blue far-space -> yellow PPS -> red body.
     colorMask(S.envelope.farRing,`rgba(28,116,210,${Math.min(.50,P.alpha*.82)})`);
     colorMask(S.envelope.ppsRing,`rgba(255,214,55,${Math.min(.68,P.alpha*1.10)})`);
     colorMask(S.envelope.body,`rgba(255,70,75,${Math.min(.84,P.alpha*1.58)})`);
@@ -760,6 +1037,7 @@ function updateUI(){
   $('#ballConfidence').textContent=S.ball?Math.round(S.ballTrackConfidence*100)+'%':'—';
   $('#narration').textContent=narrationFor(z);
   $('#oArmW').value=`${Math.round(P.manualArmW)} px`;$('#oAlpha').value=`${Math.round(P.alpha*100)}%`;
+  $('#oSegThreshold').value=`${Math.round(P.segThreshold*100)}%`;
   $('#oBallR').value=`${Math.round(P.ballR)} px`;$('#oPpsScale').value=`${Math.round(P.ppsScale)} px`;$('#oFar').value=`${Math.round(P.farScale)} px`;
 }
 function compareMark(which){
@@ -776,6 +1054,7 @@ function loop(now){
       if(moved)S.lastVideoTime=video.currentTime;
       if(pausedRefresh)S.lastPausedAt=now;
       analyzeHands(now);
+      autoSegmentHands(now);
       const hasBallKey=useBallKeyframeIfAvailable();
       if(moved&&!hasBallKey)trackBall(now);
       drawScene();recordZone();
@@ -790,6 +1069,25 @@ function loop(now){
 canvas.addEventListener('pointerdown',e=>{
   if(!video.videoWidth)return;
   const p=pointerXY(e);
+
+  if(S.segPick){
+    video.pause();
+    const side=S.segPick;
+    $('#interactionHint').textContent=`正在分割${side==='Left'?'左手':'右手'}…`;
+    const body=segmentCurrentImageAt(p.x,p.y);
+    if(body){
+      S.manualSegMasks[side]={body,time:video.currentTime,anchor:p};
+      $('#interactionHint').textContent=`${side==='Left'?'左手':'右手'}像素分割完成。此輪廓優先用於目前影格附近。`;
+    }else{
+      $('#interactionHint').textContent='分割沒有取得有效手形，請重新點手掌中央，或使用手臂關鍵影格。';
+    }
+    S.segPick=null;
+    $('#segLeft').classList.remove('active');
+    $('#segRight').classList.remove('active');
+    redraw();
+    return;
+  }
+
   if(S.armPick){
     S.armPick.points.push(p);
     const n=S.armPick.points.length,sideTxt=S.armPick.side==='Left'?'左臂':'右臂';
@@ -811,7 +1109,7 @@ $('#videoFile').onchange=e=>{
   video.onloadedmetadata=()=>{
     setCanvasSize();
     for(const id of ['play','pause','prevFrame','nextFrame','seek'])$('#'+id).disabled=false;
-    S.hands=[];S.ball=null;S.ballKeys=[];S.ballTrackConfidence=0;S.ballTrackMode='none';S.events=[];S.lastZone='none';S.lastVideoTime=-1;
+    S.hands=[];S.autoSegMasks={Left:null,Right:null};S.manualSegMasks={Left:null,Right:null};S.segPick=null;S.ball=null;S.ballKeys=[];S.ballTrackConfidence=0;S.ballTrackMode='none';S.events=[];S.lastZone='none';S.lastVideoTime=-1;
     refreshBallKeyList();
     $('#events').innerHTML='<div class="event">尚無事件</div>';
     setStatus('影片已載入',`${video.videoWidth}×${video.videoHeight} · ${fmt(video.duration)} · 可開始教學`);
@@ -826,7 +1124,7 @@ $('#seek').oninput=()=>{if(video.duration)video.currentTime=video.duration*(+$('
 video.addEventListener('play',()=>setStatus('教學分析中','紅色本體 / 黃色 PPS / 藍色外層'));
 video.addEventListener('pause',()=>{setStatus('已暫停','可逐格、指定球、建立手臂關鍵影格');S.lastPausedAt=0});
 
-$('#pickBall').onclick=()=>{S.armPick=null;$('#keyLeft').classList.remove('active');$('#keyRight').classList.remove('active');S.pickingBall=!S.pickingBall;$('#pickBall').classList.toggle('active',S.pickingBall);$('#interactionHint').innerHTML=S.pickingBall?'請直接點影片中的 <b>球中心</b>。':'已取消指定球。'};
+$('#pickBall').onclick=()=>{S.segPick=null;$('#segLeft').classList.remove('active');$('#segRight').classList.remove('active');S.armPick=null;$('#keyLeft').classList.remove('active');$('#keyRight').classList.remove('active');S.pickingBall=!S.pickingBall;$('#pickBall').classList.toggle('active',S.pickingBall);$('#interactionHint').innerHTML=S.pickingBall?'請直接點影片中的 <b>球中心</b>。':'已取消指定球。'};
 $('#clearBall').onclick=()=>{S.ball=null;S.lastZone='none';S.ballTrackMode='none';S.ballTrackConfidence=0;redraw()};
 $('#clearBallKeys').onclick=()=>{S.ballKeys=[];refreshBallKeyList();S.ball=null;S.lastZone='none';S.ballTrackMode='none';S.ballTrackConfidence=0;redraw()};
 $('#keyLeft').onclick=()=>beginArmPick('Left');$('#keyRight').onclick=()=>beginArmPick('Right');
@@ -839,6 +1137,32 @@ $('#ppsScale').oninput=e=>{P.ppsScale=+e.target.value;redraw()};
 $('#farScale').oninput=e=>{P.farScale=+e.target.value;redraw()};
 $('#useAI').onchange=e=>{P.useAI=e.target.checked;if(!P.useAI)S.hands=[];redraw()};
 $('#preferKeys').onchange=e=>{P.preferKeys=e.target.checked;redraw()};
+
+$('#useSeg').onchange=e=>{P.useSeg=e.target.checked;redraw()};
+$('#segThreshold').oninput=e=>{
+  P.segThreshold=+e.target.value/100;
+  $('#oSegThreshold').value=Math.round(P.segThreshold*100)+'%';
+};
+function beginSegPick(side){
+  if(!video.videoWidth)return;
+  video.pause();
+  S.pickingBall=false;S.armPick=null;S.segPick=side;
+  $('#pickBall').classList.remove('active');
+  $('#segLeft').classList.toggle('active',side==='Left');
+  $('#segRight').classList.toggle('active',side==='Right');
+  $('#interactionHint').innerHTML=`請點${side==='Left'?'左手':'右手'}的 <b>手掌中央</b>，系統會抓完整像素輪廓。`;
+}
+$('#segLeft').onclick=()=>beginSegPick('Left');
+$('#segRight').onclick=()=>beginSegPick('Right');
+$('#clearSeg').onclick=()=>{
+  S.manualSegMasks={Left:null,Right:null};
+  S.autoSegMasks={Left:null,Right:null};
+  S.segPick=null;
+  $('#segLeft').classList.remove('active');
+  $('#segRight').classList.remove('active');
+  redraw();
+};
+
 $('#showSkeleton').onchange=e=>{P.showSkeleton=e.target.checked;redraw()};
 $('#showCenter').onchange=e=>{P.showCenter=e.target.checked;redraw()};
 
@@ -872,7 +1196,7 @@ $('#exportFrame').onclick=()=>{
   redraw();const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`PoseTwin-POV-${Math.round(video.currentTime*1000)}ms.png`;a.click();
 };
 $('#exportJson').onclick=()=>{
-  const data={version:'PoseTwin POV Teaching v3.0.1.1',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys}};
+  const data={version:'PoseTwin POV Teaching v3.2.1',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys,useSeg:P.useSeg,segThreshold:P.segThreshold}};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='posetwin-pov-teaching.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 };
 $('#importJson').onchange=async e=>{
