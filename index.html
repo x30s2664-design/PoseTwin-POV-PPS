@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV Teaching v2.3</title>
+<title>PoseTwin POV Teaching v3.0</title>
 <style>
 :root{
   color-scheme:dark;
@@ -60,13 +60,16 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 .pill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid #315064;background:#09202b;font-size:11px}
 .footer{text-align:center;color:#708897;font-size:11px;padding:10px}
 .warn{color:#ffd27a}.good{color:#7dffb1}
+
+.envelopeNote{margin-top:8px;padding:9px 10px;border:1px solid #315064;border-radius:10px;background:#07131c;color:#a9c0cd;font-size:12px;line-height:1.55}
+
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v2.3</span></h1>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v3.0</span></h1>
       <div class="subtitle">第一人稱近體空間教學 · 紅色本體 → 黃色 PPS → 藍色外層</div>
     </div>
     <span class="badge">重新設計 · Browser-only</span>
@@ -149,9 +152,9 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
         <div id="panel-concept" class="panel active">
           <h2>第一人稱近體空間</h2>
           <div class="lesson">
-            <div class="step"><div class="num">1</div><div><b style="color:var(--red)">紅色</b>：手臂與手本身，代表本體／接觸區。</div></div>
+            <div class="step"><div class="num">1</div><div><b style="color:var(--red)">紅色</b>：只標示手與前臂本體，代表可直接接觸與操作的範圍。</div></div>
             <div class="step"><div class="num">2</div><div><b style="color:var(--yellow)">黃色</b>：近體空間（PPS）——身體周圍與動作準備、接觸預期及防禦反應相關的空間。</div></div>
-            <div class="step"><div class="num">3</div><div><b style="color:var(--blue)">藍色</b>：PPS 外側，用來表示尚未進入近體空間的區域。</div></div>
+            <div class="step"><div class="num">3</div><div><b style="color:var(--blue)">藍色</b>：PPS 外側的遠體空間，用來呈現尚未進入近體空間的外層區域。</div></div>
             <div class="small">教學重點：PPS 不是畫在場地上的固定圓，而是跟著自己的手與身體一起移動。<br>本系統以身體輪廓向外擴張的方式呈現 PPS，這是教學視覺化方法，不代表 PPS 在生理上具有固定邊界。</div>
           </div>
           <div class="legend" style="margin-top:10px">
@@ -211,9 +214,10 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 
       <div class="card section">
         <h2>分析設定</h2>
+        <div class="envelopeNote">新版改成「合併雙手／前臂遮罩 → 黃色 PPS 外擴 → 藍色遠體外擴」。因此紅色只留在本體，黃色與藍色形成一個連續的大包絡。</div>
         <div class="ctrl"><div class="ctrlHead"><label>球圈半徑</label><output id="oBallR">38 px</output></div><input id="ballR" type="range" min="12" max="120" step="1" value="38"></div>
-        <div class="ctrl"><div class="ctrlHead"><label>黃色 PPS 外擴距離</label><output id="oPpsScale">1.80×</output></div><input id="ppsScale" type="range" min="1.20" max="3.00" step=".05" value="1.80"></div>
-        <div class="ctrl"><div class="ctrlHead"><label>藍色外層外擴距離</label><output id="oFar">0.85×</output></div><input id="farScale" type="range" min=".20" max="1.50" step=".05" value=".85"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>黃色 PPS 距離</label><output id="oPpsScale">140 px</output></div><input id="ppsScale" type="range" min="40" max="320" step="5" value="140"></div>
+        <div class="ctrl"><div class="ctrlHead"><label>藍色遠體距離</label><output id="oFar">210 px</output></div><input id="farScale" type="range" min="60" max="420" step="5" value="210"></div>
         <div class="row">
           <button id="exportFrame" class="btn">匯出目前畫面 PNG</button>
           <button id="exportJson" class="btn">匯出標記 JSON</button>
@@ -223,7 +227,7 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
     </div>
   </div>
 
-  <div class="footer">PoseTwin POV Teaching v2.3 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
+  <div class="footer">PoseTwin POV Teaching v3.0 · 教學示範用 · 分析結果為視覺化估測，不代表臨床或生物力學量測</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -242,7 +246,7 @@ const S={
   masks:[],events:[],lastZone:'none',
   compare:{A:null,B:null}
 };
-const P={alpha:.52,manualArmW:54,ppsScale:1.80,farScale:.85,useAI:true,preferKeys:true,showSkeleton:false,showCenter:false,ballR:38};
+const P={alpha:.52,manualArmW:54,ppsScale:140,farScale:210,useAI:true,preferKeys:true,showSkeleton:false,showCenter:false,ballR:38};
 
 function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b }
 function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
@@ -395,6 +399,11 @@ function subtract(a,b){
   o.globalCompositeOperation='destination-out';if(b)o.drawImage(b,0,0);o.globalCompositeOperation='source-over';
   return out;
 }
+function mergeMasks(...masks){
+  const out=maskCanvas(),o=out.getContext('2d');
+  for(const m of masks)if(m)o.drawImage(m,0,0);
+  return out;
+}
 function colorMask(mask,color){
   if(!mask)return;
   const tmp=maskCanvas(),t=tmp.getContext('2d');
@@ -455,18 +464,21 @@ function bodyMaskFromManual(side,arm){
 function buildMasks(){
   const out=[],t=video.currentTime||0,used=new Set();
 
-  // 教學模式預設：有手動關鍵影格時優先使用，避免 AI 抖動或突然消失。
   if(P.preferKeys){
     for(const side of ['Left','Right']){
       const arm=resolveManualArm(side,t);
-      if(arm){const m=bodyMaskFromManual(side,arm);if(m){out.push(m);used.add(side)}}
+      if(arm){
+        const m=bodyMaskFromManual(side,arm);
+        if(m){out.push(m);used.add(side)}
+      }
     }
   }
 
   if(P.useAI){
     for(const h of S.hands){
       if((h.side==='Left'||h.side==='Right')&&!used.has(h.side)){
-        out.push(bodyMaskFromAI(h));used.add(h.side);
+        out.push(bodyMaskFromAI(h));
+        used.add(h.side);
       }
     }
   }
@@ -475,19 +487,26 @@ function buildMasks(){
     for(const side of ['Left','Right']){
       if(used.has(side))continue;
       const arm=resolveManualArm(side,t);
-      if(arm){const m=bodyMaskFromManual(side,arm);if(m)out.push(m)}
+      if(arm){
+        const m=bodyMaskFromManual(side,arm);
+        if(m)out.push(m);
+      }
     }
   }
 
   S.masks=out;
-  for(const item of S.masks){
-    const target=P.ppsScale;
-    const ppsRadius=Math.max(8,item.width*(target-1)/2);
-    item.ppsOuter=dilate(item.body,ppsRadius);
-    item.ppsRing=subtract(item.ppsOuter,item.body);
-    item.farOuter=dilate(item.ppsOuter,Math.max(14,item.width*P.farScale));
-    item.farRing=subtract(item.farOuter,item.ppsOuter);
-  }
+
+  // Combined body envelope:
+  // red = body only
+  // yellow = body dilated outward, excluding body
+  // blue = PPS dilated outward, excluding PPS
+  const combinedBody=mergeMasks(...out.map(m=>m.body));
+  const ppsOuter=dilate(combinedBody,Math.max(10,P.ppsScale));
+  const ppsRing=subtract(ppsOuter,combinedBody);
+  const farOuter=dilate(ppsOuter,Math.max(14,P.farScale));
+  const farRing=subtract(farOuter,ppsOuter);
+
+  S.envelope={body:combinedBody,ppsOuter,ppsRing,farOuter,farRing};
 }
 function maskHit(mask,x,y){
   if(!mask)return false;
@@ -501,66 +520,17 @@ function circleHits(mask,cx,cy,r){
 }
 function zoneInfo(){
   if(!S.ball)return{key:'none',label:'等待球',source:'—'};
-  for(const m of S.masks)if(circleHits(m.body,S.ball.cx,S.ball.cy,S.ball.r))return{key:'body',label:'紅色：接觸 / 本體',source:m.source};
-  for(const m of S.masks)if(circleHits(m.ppsOuter,S.ball.cx,S.ball.cy,S.ball.r))return{key:'pps',label:'黃色：近體空間 PPS',source:m.source};
-  for(const m of S.masks)if(circleHits(m.farOuter,S.ball.cx,S.ball.cy,S.ball.r))return{key:'far',label:'藍色：外層空間',source:m.source};
-  return{key:'outside',label:'外層之外',source:S.masks[0]?.source||'—'};
-}
+  const e=S.envelope;
+  if(!e)return{key:'outside',label:'外層之外',source:'—'};
 
+  if(circleHits(e.body,S.ball.cx,S.ball.cy,S.ball.r))
+    return{key:'body',label:'紅色：接觸 / 本體',source:'Body mask'};
+  if(circleHits(e.ppsOuter,S.ball.cx,S.ball.cy,S.ball.r))
+    return{key:'pps',label:'黃色：近體空間 PPS',source:'PPS'};
+  if(circleHits(e.farOuter,S.ball.cx,S.ball.cy,S.ball.r))
+    return{key:'far',label:'藍色：遠體空間',source:'Far space'};
 
-function addBallKey(x,y,r){
-  const t=video.currentTime||0;
-  const key={time:t,cx:x,cy:y,r:r||P.ballR};
-  const i=S.ballKeys.findIndex(k=>Math.abs(k.time-t)<.08);
-  if(i>=0)S.ballKeys[i]=key;else S.ballKeys.push(key);
-  S.ballKeys.sort((a,b)=>a.time-b.time);
-  refreshBallKeyList();
-}
-function resolveBallKey(t){
-  const a=S.ballKeys;
-  if(!a.length)return null;
-  if(a.length===1)return {...a[0],mode:'key'};
-  if(t<=a[0].time)return {...a[0],mode:'key'};
-  if(t>=a[a.length-1].time)return {...a[a.length-1],mode:'key'};
-  for(let i=0;i<a.length-1;i++){
-    const k0=a[i],k1=a[i+1];
-    if(t>=k0.time&&t<=k1.time){
-      const u=(t-k0.time)/(k1.time-k0.time||1);
-      return{
-        time:t,
-        cx:lerp(k0.cx,k1.cx,u),
-        cy:lerp(k0.cy,k1.cy,u),
-        r:lerp(k0.r,k1.r,u),
-        mode:'interp'
-      };
-    }
-  }
-  return null;
-}
-function refreshBallKeyList(){
-  if(!S.ballKeys.length){
-    $('#ballKeyList').innerHTML='<div class="event">尚無球關鍵影格</div>';
-    return;
-  }
-  $('#ballKeyList').innerHTML=S.ballKeys.map(k=>`
-    <div class="keyItem">
-      <span><b>球</b> · ${fmt(k.time)} · r=${Math.round(k.r)}px</span>
-      <button class="btn delBallKey" data-time="${k.time}" style="padding:5px 8px">刪除</button>
-    </div>`).join('');
-  document.querySelectorAll('.delBallKey').forEach(b=>b.onclick=()=>{
-    const t=+b.dataset.time;
-    S.ballKeys=S.ballKeys.filter(k=>Math.abs(k.time-t)>.001);
-    refreshBallKeyList();redraw();
-  });
-}
-function useBallKeyframeIfAvailable(){
-  const k=resolveBallKey(video.currentTime||0);
-  if(!k)return false;
-  if(!S.ball)S.ball={cx:k.cx,cy:k.cy,r:k.r,hist:null,lost:0};
-  S.ball.cx=k.cx;S.ball.cy=k.cy;S.ball.r=k.r;
-  S.ballTrackMode=k.mode==='interp'?'關鍵影格插值':'球關鍵影格';
-  S.ballTrackConfidence=1;
-  return true;
+  return{key:'outside',label:'遠體空間之外',source:'—'};
 }
 
 // ---------- ball tracker ----------
@@ -657,10 +627,11 @@ function drawScene(){
   setCanvasSize();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(video,0,0,canvas.width,canvas.height);
   if(P.showCenter){ctx.save();ctx.strokeStyle='rgba(255,255,255,.18)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();ctx.restore()}
   buildMasks();
-  for(const m of S.masks){
-    colorMask(m.farRing,`rgba(28,116,210,${Math.min(.52,P.alpha*.82)})`);
-    colorMask(m.ppsRing,`rgba(255,214,55,${Math.min(.70,P.alpha*1.12)})`);
-    colorMask(m.body,`rgba(255,70,75,${Math.min(.82,P.alpha*1.55)})`);
+  if(S.envelope){
+    // Back to front: blue far-space -> yellow PPS -> red body.
+    colorMask(S.envelope.farRing,`rgba(28,116,210,${Math.min(.50,P.alpha*.82)})`);
+    colorMask(S.envelope.ppsRing,`rgba(255,214,55,${Math.min(.68,P.alpha*1.10)})`);
+    colorMask(S.envelope.body,`rgba(255,70,75,${Math.min(.84,P.alpha*1.58)})`);
   }
   if(P.showSkeleton){
     for(const h of S.hands){
@@ -676,9 +647,17 @@ function drawScene(){
   }
   if(S.ball){
     const z=zoneInfo();
-    const col=z.key==='body'?'#ff5358':z.key==='pps'?'#ffd84b':z.key==='far'?'#3f9cff':'#ffffff';
-    ctx.save();ctx.strokeStyle=col;ctx.lineWidth=Math.max(3,canvas.width/420);ctx.beginPath();ctx.arc(S.ball.cx,S.ball.cy,S.ball.r,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle=col;ctx.font=`700 ${Math.max(13,canvas.width/80)}px system-ui`;ctx.fillText(z.label,S.ball.cx+S.ball.r+8,S.ball.cy);ctx.restore();
+    const col='#35f06a';
+    ctx.save();
+    ctx.strokeStyle=col;
+    ctx.lineWidth=Math.max(3,canvas.width/420);
+    ctx.beginPath();ctx.arc(S.ball.cx,S.ball.cy,S.ball.r,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(S.ball.cx,S.ball.cy,Math.max(4,canvas.width/220),0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(53,240,106,.85)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(S.ball.cx-S.ball.r*.28,S.ball.cy);ctx.lineTo(S.ball.cx+S.ball.r*.28,S.ball.cy);
+    ctx.moveTo(S.ball.cx,S.ball.cy-S.ball.r*.28);ctx.lineTo(S.ball.cx,S.ball.cy+S.ball.r*.28);ctx.stroke();
+    ctx.font=`700 ${Math.max(13,canvas.width/80)}px system-ui`;ctx.fillText(z.label,S.ball.cx+S.ball.r+8,S.ball.cy);
+    ctx.restore();
   }
   updateUI();
 }
@@ -688,7 +667,7 @@ function redraw(){if(video.videoWidth)drawScene()}
 function narrationFor(z){
   if(z.key==='body')return'球已進入紅色本體區：現在是接觸或即將接觸的階段。';
   if(z.key==='pps')return'球已進入黃色 PPS：觀察此刻雙手是否已經完成準備位置。';
-  if(z.key==='far')return'球位於藍色外層：已接近自己的近體空間，可以開始動作準備。';
+  if(z.key==='far')return'球位於藍色遠體空間：尚未進入 PPS，但已進入外層預警範圍。';
   if(z.key==='outside')return'球仍在近體空間之外：此時以視覺注意與預判為主。';
   return'先載入影片，再指定球或建立手臂關鍵影格。';
 }
@@ -708,7 +687,7 @@ function updateUI(){
   $('#ballConfidence').textContent=S.ball?Math.round(S.ballTrackConfidence*100)+'%':'—';
   $('#narration').textContent=narrationFor(z);
   $('#oArmW').value=`${Math.round(P.manualArmW)} px`;$('#oAlpha').value=`${Math.round(P.alpha*100)}%`;
-  $('#oBallR').value=`${Math.round(P.ballR)} px`;$('#oPpsScale').value=`${P.ppsScale.toFixed(2)}×`;$('#oFar').value=`${P.farScale.toFixed(2)}×`;
+  $('#oBallR').value=`${Math.round(P.ballR)} px`;$('#oPpsScale').value=`${Math.round(P.ppsScale)} px`;$('#oFar').value=`${Math.round(P.farScale)} px`;
 }
 function compareMark(which){
   const z=zoneInfo();S.compare[which]={time:video.currentTime,label:z.label};
@@ -791,9 +770,9 @@ $('#showSkeleton').onchange=e=>{P.showSkeleton=e.target.checked;redraw()};
 $('#showCenter').onchange=e=>{P.showCenter=e.target.checked;redraw()};
 
 function setPreset(name){
-  if(name==='standard'){P.ppsScale=1.50;P.farScale=.50;P.alpha=.46}
-  if(name==='teaching'){P.ppsScale=1.80;P.farScale=.85;P.alpha=.52}
-  if(name==='wide'){P.ppsScale=2.20;P.farScale=1.15;P.alpha=.56}
+  if(name==='standard'){P.ppsScale=95;P.farScale=150;P.alpha=.46}
+  if(name==='teaching'){P.ppsScale=140;P.farScale=210;P.alpha=.52}
+  if(name==='wide'){P.ppsScale=190;P.farScale=290;P.alpha=.56}
   $('#ppsScale').value=P.ppsScale;
   $('#farScale').value=P.farScale;
   $('#alpha').value=Math.round(P.alpha*100);
@@ -820,7 +799,7 @@ $('#exportFrame').onclick=()=>{
   redraw();const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`PoseTwin-POV-${Math.round(video.currentTime*1000)}ms.png`;a.click();
 };
 $('#exportJson').onclick=()=>{
-  const data={version:'PoseTwin POV Teaching v2.3',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys}};
+  const data={version:'PoseTwin POV Teaching v3.0',armKeys:S.armKeys,compare:S.compare,params:{manualArmW:P.manualArmW,ppsScale:P.ppsScale,farScale:P.farScale,alpha:P.alpha,preferKeys:P.preferKeys}};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='posetwin-pov-teaching.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 };
 $('#importJson').onchange=async e=>{
