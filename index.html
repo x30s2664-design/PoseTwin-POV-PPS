@@ -4,69 +4,62 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV Teaching v4.2</title>
+<title>PoseTwin POV Teaching v6.1 — Embodied Learning Lab</title>
 <style>
 :root{
   color-scheme:dark;
   --bg:#061018;--panel:#0b1822;--panel2:#08131b;--line:#223a4b;
   --text:#eff7fb;--muted:#8da8b7;--cyan:#66d6ff;
-  --red:#ff3541;--yellow:#ffd91f;--blue:#2d8cff;--green:#35f06a;
+  --red:#ff3e49;--yellow:#ffd92a;--blue:#338fff;--green:#35ef6a;
+  --warn:#ffb84a;--bad:#ff6b72;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
-button,input{font:inherit}
-.app{max-width:1660px;margin:auto;padding:14px}
+button,input{font:inherit}.app{max-width:1700px;margin:auto;padding:14px}
 .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
-h1{margin:0;font-size:clamp(25px,3vw,40px)}
-.sub{color:var(--muted);margin-top:4px}
-.badge{font-size:12px;border:1px solid #2c6079;background:#0b2634;color:#a4eaff;border-radius:999px;padding:6px 10px}
-.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(350px,.65fr);gap:12px}
-@media(max-width:1080px){.layout{grid-template-columns:1fr}}
+h1{margin:0;font-size:clamp(25px,3vw,40px)}.sub{color:var(--muted);margin-top:4px}
+.badge{font-size:12px;border:1px solid #2d6178;background:#0b2634;color:#a8eaff;border-radius:999px;padding:6px 10px}
+.layout{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(390px,.62fr);gap:12px}
+@media(max-width:1120px){.layout{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.stage{position:relative;background:#000;min-height:440px;display:grid;place-items:center}
+.stage{position:relative;display:grid;place-items:center;background:#000;min-height:440px}
 #cv{display:block;width:100%;height:auto;max-height:76vh;object-fit:contain;touch-action:none}
-.hud{position:absolute;left:10px;top:10px;background:rgba(4,11,17,.86);border:1px solid #2b6682;border-radius:12px;padding:9px 11px;font-size:12px;z-index:5}
-.hud b{display:block;font-size:13px}
-.toolbar{padding:11px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)}
+.hud{position:absolute;left:10px;top:10px;z-index:5;background:rgba(4,11,17,.88);border:1px solid #2d6882;border-radius:12px;padding:9px 11px;font-size:12px;max-width:min(620px,92%)}
+.hud b{display:block;font-size:13px}.toolbar{padding:11px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)}
 .btn,input[type=file]{border:1px solid var(--line);background:#0f1e29;color:var(--text);padding:9px 12px;border-radius:11px}
-.btn{cursor:pointer}.btn:hover{border-color:#426c84}.btn.active{border-color:var(--cyan);background:#103f5b}.btn:disabled{opacity:.45}
-.seek{flex:1;min-width:180px}
-.section{padding:14px}.section h2{font-size:16px;margin:0 0 10px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.btn{cursor:pointer}.btn:hover{border-color:#456b80}.btn.active{border-color:var(--cyan);background:#103f5b}.btn:disabled{opacity:.45;cursor:not-allowed}
+.seek{flex:1;min-width:180px}.section{padding:14px}.section h2{font-size:16px;margin:0 0 10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
 .metric{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
-.metric b{display:block;font-size:16px}.metric span,.small{font-size:12px;color:var(--muted);line-height:1.55}
-.right{display:flex;flex-direction:column;gap:12px}
-.legend{display:grid;gap:9px}.legendRow{display:flex;gap:10px;align-items:flex-start}
-.swatch{width:44px;height:22px;border-radius:7px;flex:0 0 auto;margin-top:2px}
-.ctrl{margin:10px 0}.ctrlHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px}
-.ctrl output{color:var(--cyan)}input[type=range]{width:100%}
-.note{padding:10px;border:1px solid #315064;border-radius:11px;background:#07131c;color:#a9c0cd;font-size:12px;line-height:1.6}
-.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.tab{border:1px solid var(--line);background:#0d1b25;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-.tab.active{border-color:var(--cyan);background:#12364a}
-.panel{display:none}.panel.active{display:block}
-.events{display:grid;gap:6px;max-height:210px;overflow:auto}
-.event{padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12px}
-.event.current{border-color:var(--cyan)}
+.metric b{display:block;font-size:16px;word-break:break-word}.metric span,.small{font-size:12px;color:var(--muted);line-height:1.55}
+.metric.ok b{color:var(--green)}.metric.warn b{color:var(--warn)}.metric.bad b{color:var(--bad)}
+.right{display:flex;flex-direction:column;gap:12px}.ctrl{margin:10px 0}.ctrlHead{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:5px}.ctrl output{color:var(--cyan)}input[type=range]{width:100%}
+.note{padding:10px;border:1px solid #315064;border-radius:11px;background:#07131c;color:#aac1ce;font-size:12px;line-height:1.65}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.tab{border:1px solid var(--line);background:#0d1b25;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:12px}.tab.active{border-color:var(--cyan);background:#12364a}.panel{display:none}.panel.active{display:block}
+.chain{display:grid;gap:7px}.chainItem{padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);font-size:12px;line-height:1.6}.chainItem b{color:#dbf5ff}.chainItem em{color:var(--cyan);font-style:normal}
+.events{display:grid;gap:6px;max-height:220px;overflow:auto}.event{padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12px}.event.current{border-color:var(--cyan)}
+.prompt{padding:12px;border:1px solid #66571f;border-radius:12px;background:#201a07;line-height:1.65;font-size:13px}.evidence{padding:10px;border:1px solid #315064;border-radius:11px;background:#07131c;font-size:12px;line-height:1.65;margin-top:8px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
 .footer{text-align:center;color:#708897;font-size:11px;padding:10px}
+code{color:#b9eaff}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v4.2</span></h1>
-      <div class="sub">第一人稱教學 · 紅色手部 · 黃色近體空間（PPS）· 藍色遠體空間 · 綠色球</div>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v6.1</span></h1>
+      <div class="sub">具身認知 × Dynamic PPS × 球追蹤 × TTC × 學習任務</div>
     </div>
-    <span class="badge">Soft Shell Field</span>
+    <span class="badge">Embodied Learning Lab · GitHub Pages</span>
   </div>
 
   <div class="layout">
     <div class="card">
       <div class="stage">
         <canvas id="cv" width="1280" height="720"></canvas>
-        <div class="hud"><b id="status">初始化中…</b><span id="detail">黃色與藍色不再由手部外擴。</span></div>
+        <div class="hud"><b id="status">初始化中…</b><span id="detail">載入影片後，先初始化球。追蹤不可靠時會停止深度與 TTC，避免錯誤數值。</span></div>
       </div>
 
       <div class="toolbar">
@@ -81,19 +74,28 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
 
       <div class="section">
         <div class="row">
-          <button id="pickBall" class="btn">🏐 標記球</button>
-          <button id="pickLeft" class="btn">🫲 標記左手</button>
-          <button id="pickRight" class="btn">🫱 標記右手</button>
+          <button id="seedBall" class="btn">🏐 初始化／重抓球</button>
+          <button id="leftHand" class="btn">🫲 手動左手</button>
+          <button id="rightHand" class="btn">🫱 手動右手</button>
           <button id="setBody" class="btn">◎ 設定本體中心</button>
-          <button id="clearMarks" class="btn">清除標記</button>
+          <button id="resetAll" class="btn">重設分析</button>
+          <button id="exportJson" class="btn">匯出教學 JSON</button>
         </div>
         <div id="hint" class="note" style="margin-top:10px">
-          預設黃色／藍色使用固定的第一人稱本體場，不依附手部。手部 AI 抓不到時，可暫停影片後標記手的位置。
+          建議：暫停在球清楚的畫面 → 初始化球 → 點球中心。勾選「自動估半徑」時會先估球大小；若圈不準，再用右側「初始球半徑」調整後重新初始化。
         </div>
         <div class="row" style="margin-top:10px">
-          <label class="small"><input id="useAI" type="checkbox" checked> AI 手部輔助</label>
-          <label class="small"><input id="showGuide" type="checkbox"> 顯示模擬本體基準線</label>
-          <label class="small"><input id="showHandSkeleton" type="checkbox"> 顯示手部骨架</label>
+          <label class="small"><input id="useHands" type="checkbox" checked> MediaPipe 手部輔助</label>
+          <label class="small"><input id="autoRadius" type="checkbox" checked> 初始化時自動估半徑</label>
+          <label class="small"><input id="showTrail" type="checkbox" checked> 球軌跡</label>
+          <label class="small"><input id="showField" type="checkbox" checked> Dynamic PPS</label>
+          <label class="small"><input id="showGuide" type="checkbox"> 本體基準線</label>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--red)"></i>紅：手／前臂</span>
+          <span><i class="dot" style="background:var(--yellow)"></i>黃：動態近體空間</span>
+          <span><i class="dot" style="background:var(--blue)"></i>藍：外層空間</span>
+          <span><i class="dot" style="background:var(--green)"></i>綠：可靠追蹤中的球</span>
         </div>
       </div>
     </div>
@@ -101,556 +103,250 @@ h1{margin:0;font-size:clamp(25px,3vw,40px)}
     <div class="right">
       <div class="card section">
         <div class="tabs">
-          <button class="tab active" data-tab="concept">概念</button>
-          <button class="tab" data-tab="live">即時判斷</button>
-          <button class="tab" data-tab="field">空間設定</button>
+          <button class="tab active" data-tab="framework">學習框架</button>
+          <button class="tab" data-tab="live">即時狀態</button>
+          <button class="tab" data-tab="task">學習任務</button>
+          <button class="tab" data-tab="settings">設定</button>
         </div>
 
-        <div id="panel-concept" class="panel active">
-          <h2>示意圖對應邏輯</h2>
-          <div class="legend">
-            <div class="legendRow"><span class="swatch" style="background:var(--red)"></span><div><b>紅色：手部接觸區</b><div class="small">只覆蓋手／前臂，不用它來生成黃色或藍色。</div></div></div>
-            <div class="legendRow"><span class="swatch" style="background:var(--yellow)"></span><div><b>黃色：近體空間帶（PPS）</b><div class="small">由第一人稱「模擬本體場」產生，表示身體周圍的動作準備、接觸預期與防禦相關空間。</div></div></div>
-            <div class="legendRow"><span class="swatch" style="background:var(--blue)"></span><div><b>藍色：遠體空間帶</b><div class="small">位於黃色 PPS 外側，由相同模擬本體場產生。</div></div></div>
-            <div class="legendRow"><span class="swatch" style="background:var(--green)"></span><div><b>綠色：球</b><div class="small">球中心、半徑與目前所在空間獨立判斷。</div></div></div>
+        <div id="panel-framework" class="panel active">
+          <h2>從現象到科技實踐</h2>
+          <div class="chain">
+            <div class="chainItem"><b>1. 現象</b>：先看真實變化。球的位置、視覺大小、方向、聲音與接觸，是身體可經驗的物理規律。</div>
+            <div class="chainItem"><b>2. 身體</b>：<em>身體既是限制，也是標尺</em>。手的可達性、反應時間與 PPS，把外在空間轉成「與我行動有何關係」。</div>
+            <div class="chainItem"><b>3. 概念／語言</b>：用「接近、可達、碰撞、PPS、TTC」標記經驗；語言是再現方式，不必先變成公式。</div>
+            <div class="chainItem"><b>4. 形式化／數學化</b>：需要精確比較與預測時，再把部分關係寫成 <code>Z=fD/(2r)</code>、<code>TTC≈(Z-Zc)/v</code>。公式是選擇性的壓縮，不是世界本身。</div>
+            <div class="chainItem"><b>5. 實踐</b>：預測 → 行動 → 結果 → 修正。學習的判準不是只會說概念，而是能在新情境中調整行動、甚至改變現象或環境。</div>
+            <div class="chainItem"><b>6. 科技</b>：Camera／感測資料 + 身體模型 + 演算法 + 記憶，將感知—預測—行動功能做成工具；科技用來賦能，不替代學生的身體經驗。</div>
           </div>
-          <div class="note" style="margin-top:10px">
-            關鍵差異：黃色與藍色現在是「空間帶」而不是實心塗色。中間本體區保持原影片，黃色只包在本體外圍，藍色再包在黃色外側。
-          </div>
+          <div class="note" style="margin-top:10px"><b>教學原則：</b>教師設計環境、任務與回饋，使學生從「在提示下做到」逐步走向「自己做到，並能遷移到新情境」。</div>
         </div>
 
         <div id="panel-live" class="panel">
-          <h2>球與空間的關係</h2>
+          <h2>即時具身狀態</h2>
           <div class="grid">
-            <div class="metric"><b id="zone">等待球</b><span>目前區域</span></div>
-            <div class="metric"><b id="ballSource">—</b><span>球來源</span></div>
-            <div class="metric"><b id="hands">0</b><span>AI 手數</span></div>
-            <div class="metric"><b id="handSource">—</b><span>紅色手部來源</span></div>
+            <div id="trackCard" class="metric"><b id="mTrack">等待球</b><span>追蹤狀態</span></div>
+            <div class="metric"><b id="mConf">—</b><span>視覺信心</span></div>
+            <div class="metric"><b id="mRadius">—</b><span>球半徑</span></div>
+            <div class="metric"><b id="mSpeed">—</b><span>影像速度</span></div>
+            <div class="metric"><b id="mDepth">—</b><span>估計深度 Z</span></div>
+            <div class="metric"><b id="mApproach">—</b><span>接近速度</span></div>
+            <div class="metric"><b id="mTTC">—</b><span>TTC</span></div>
+            <div class="metric"><b id="mActivation">—</b><span>PPS 活化</span></div>
+            <div class="metric"><b id="mZone">等待球</b><span>身體相對空間</span></div>
+            <div class="metric"><b id="mHands">0</b><span>目前手部</span></div>
           </div>
-          <div id="narration" class="note" style="margin-top:10px">載入影片後開始教學。</div>
+          <div id="narration" class="note" style="margin-top:10px">尚未初始化球。</div>
+          <div id="evidence" class="evidence">證據與推論會顯示在這裡。</div>
         </div>
 
-        <div id="panel-field" class="panel">
-          <h2>第一人稱空間帶</h2>
-          <div class="ctrl"><div class="ctrlHead"><label>空間中心 X</label><output id="oBodyX">50%</output></div><input id="bodyX" type="range" min="25" max="75" value="50"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>空間中心 Y</label><output id="oBodyY">108%</output></div><input id="bodyY" type="range" min="88" max="135" value="108"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>基準橫向半徑</label><output id="oBodyRX">42%</output></div><input id="bodyRX" type="range" min="26" max="70" value="42"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>基準縱向半徑</label><output id="oBodyRY">58%</output></div><input id="bodyRY" type="range" min="34" max="88" value="58"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>黃色 PPS 外擴</label><output id="oPps">20%</output></div><input id="pps" type="range" min="8" max="42" value="20"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>藍色遠體外擴</label><output id="oFar">24%</output></div><input id="far" type="range" min="10" max="52" value="24"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>透明度</label><output id="oAlpha">42%</output></div><input id="alpha" type="range" min="15" max="70" value="42"></div>
-          <div class="row">
-            <button id="presetPhoto" class="btn active">示意圖</button>
-            <button id="presetCompact" class="btn">緊湊</button>
-            <button id="presetWide" class="btn">寬廣</button>
+        <div id="panel-task" class="panel">
+          <h2>學習任務</h2>
+          <div class="row" style="margin-bottom:10px">
+            <button id="modeObserve" class="btn active">觀察</button>
+            <button id="modePredict" class="btn">預測</button>
+            <button id="modeExplain" class="btn">解釋</button>
+            <button id="modeTransfer" class="btn">遷移</button>
           </div>
+          <div id="taskPrompt" class="prompt">先觀察球的位置、大小與移動方向；不要急著看公式。</div>
+          <div class="note" style="margin-top:10px">建議課堂流程：學生先作判斷 → 再開啟量測 → 實際操作或播放下一段 → 比較預測與結果 → 換情境再測一次。</div>
+        </div>
+
+        <div id="panel-settings" class="panel">
+          <h2>追蹤與本體場設定</h2>
+          <div class="ctrl"><div class="ctrlHead"><label>初始球半徑</label><output id="oBallR">42 px</output></div><input id="ballR" type="range" min="12" max="220" value="42"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>水平 FOV</label><output id="oFov">100°</output></div><input id="fov" type="range" min="55" max="150" value="100"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>排球直徑</label><output id="oBallD">21 cm</output></div><input id="ballD" type="range" min="18" max="24" step=".5" value="21"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>視覺接受門檻</label><output id="oConfMin">54%</output></div><input id="confMin" type="range" min="30" max="85" value="54"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>允許短暫漏追</label><output id="oCoast">5 格</output></div><input id="maxCoast" type="range" min="1" max="12" value="5"></div>
+          <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+          <div class="ctrl"><div class="ctrlHead"><label>本體中心 X</label><output id="oBodyX">50%</output></div><input id="bodyX" type="range" min="25" max="75" value="50"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>本體中心 Y</label><output id="oBodyY">108%</output></div><input id="bodyY" type="range" min="88" max="135" value="108"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>本體橫向半徑</label><output id="oBodyRX">42%</output></div><input id="bodyRX" type="range" min="26" max="70" value="42"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>本體縱向半徑</label><output id="oBodyRY">58%</output></div><input id="bodyRY" type="range" min="34" max="88" value="58"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>PPS 基礎外擴</label><output id="oPps">20%</output></div><input id="pps" type="range" min="8" max="42" value="20"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>藍色外層寬度</label><output id="oFar">24%</output></div><input id="far" type="range" min="10" max="52" value="24"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>手部方向影響</label><output id="oHandGain">0.22</output></div><input id="handGain" type="range" min="0" max="60" value="22"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>接近速度影響</label><output id="oMotionGain">0.34</output></div><input id="motionGain" type="range" min="0" max="70" value="34"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>TTC 影響</label><output id="oTtcGain">0.42</output></div><input id="ttcGain" type="range" min="0" max="80" value="42"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>空間透明度</label><output id="oAlpha">42%</output></div><input id="alpha" type="range" min="15" max="65" value="42"></div>
         </div>
       </div>
 
-      <div class="card section">
-        <h2>事件時間線</h2>
-        <div id="events" class="events"><div class="event">尚無事件</div></div>
-      </div>
+      <div class="card section"><h2>事件時間線</h2><div id="events" class="events"><div class="event">尚無事件</div></div></div>
     </div>
   </div>
 
-  <div class="footer">PoseTwin POV Teaching v4.2 · Body-centered PPS teaching visualization</div>
+  <div class="footer">PoseTwin POV Teaching v6.1 · 教學研究原型 · 單眼深度與 TTC 為估測值；Dynamic PPS 是教學計算模型，不是神經 PPS 的直接量測。</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
+<canvas id="raw" style="display:none"></canvas>
 
 <script>
 const $=s=>document.querySelector(s);
-const cv=$('#cv'),ctx=cv.getContext('2d'),video=$('#video');
-
-const S={
-  hand:null,handReady:false,hands:[],lastHandAt:0,lastVideoTime:-1,lastPausedAt:0,
-  ball:null,ballKeys:[],ballMode:'none',picking:null,
-  manualHands:{Left:null,Right:null},
-  bodyCenter:null,
-  events:[],lastZone:'none'
-};
+const cv=$('#cv'),ctx=cv.getContext('2d');
+const raw=$('#raw'),rctx=raw.getContext('2d',{willReadFrequently:true});
+const video=$('#video');
 
 const P={
-  useAI:true,showGuide:false,showHandSkeleton:false,
-  bodyX:.50,bodyY:1.08,bodyRX:.42,bodyRY:.58,
-  pps:.20,far:.24,alpha:.42,
-  ballR:38,handW:56
+  ballR:42,fov:100,ballD:.21,confMin:.54,maxCoast:5,autoRadius:true,
+  bodyX:.50,bodyY:1.08,bodyRX:.42,bodyRY:.58,pps:.20,far:.24,
+  handGain:.22,motionGain:.34,ttcGain:.42,alpha:.42,
+  showTrail:true,showField:true,showGuide:false,useHands:true
 };
-
+const S={
+  hand:null,handReady:false,hands:[],lastHandAt:0,manualHands:{Left:null,Right:null},
+  picking:null,ball:null,lastGoodBall:null,template:null,kx:null,ky:null,kr:null,
+  trackConf:0,trackState:'idle',trackMode:'等待初始化',missFrames:0,lastTrackTime:null,frameData:null,
+  prevDepth:null,prevDepthTime:null,depthVel:0,trail:[],events:[],lastZone:'none',lastTrackState:'idle',
+  lastVideoTime:-1,lastPausedAt:0,teachMode:'observe',latest:null,fieldCanvas:null
+};
 const HAND_MODEL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function lerp(a,b,t){return a+(b-a)*t}
 function fmt(t){if(!isFinite(t))return'00:00';return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')}
 function setStatus(a,b=''){ $('#status').textContent=a;$('#detail').textContent=b }
-function setCanvasSize(){if(video.videoWidth&&(cv.width!==video.videoWidth||cv.height!==video.videoHeight)){cv.width=video.videoWidth;cv.height=video.videoHeight}}
+function setSize(){if(!video.videoWidth)return;if(cv.width!==video.videoWidth||cv.height!==video.videoHeight){cv.width=video.videoWidth;cv.height=video.videoHeight}if(raw.width!==video.videoWidth||raw.height!==video.videoHeight){raw.width=video.videoWidth;raw.height=video.videoHeight}}
 function pointerXY(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height}}
+function captureFrame(){if(!video.videoWidth)return false;setSize();rctx.drawImage(video,0,0,raw.width,raw.height);S.frameData=rctx.getImageData(0,0,raw.width,raw.height);return true}
+function pixel(x,y){const fd=S.frameData;if(!fd)return[0,0,0];x=clamp(Math.round(x),0,fd.width-1);y=clamp(Math.round(y),0,fd.height-1);const k=(y*fd.width+x)*4;return[fd.data[k],fd.data[k+1],fd.data[k+2]]}
+
+class KF1D{
+  constructor(pos,vel=0){this.x=pos;this.v=vel;this.p00=120;this.p01=0;this.p10=0;this.p11=80;this.q=5}
+  predict(dt){this.x+=this.v*dt;const p00=this.p00+dt*(this.p10+this.p01)+dt*dt*this.p11+this.q,p01=this.p01+dt*this.p11,p10=this.p10+dt*this.p11,p11=this.p11+this.q*.35;this.p00=p00;this.p01=p01;this.p10=p10;this.p11=p11;return this.x}
+  update(z,R){const y=z-this.x,s=this.p00+R,k0=this.p00/s,k1=this.p10/s;const p00=this.p00,p01=this.p01,p10=this.p10,p11=this.p11;this.x+=k0*y;this.v+=k1*y;this.p00=(1-k0)*p00;this.p01=(1-k0)*p01;this.p10=p10-k1*p00;this.p11=p11-k1*p01}
+}
 
 async function initHands(){
   try{
-    const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm');
-    const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
-    S.hand=await mp.HandLandmarker.createFromOptions(vision,{
-      baseOptions:{modelAssetPath:HAND_MODEL},
-      runningMode:'VIDEO',numHands:2,
-      minHandDetectionConfidence:.28,minHandPresenceConfidence:.26,minTrackingConfidence:.28
-    });
-    S.handReady=true;
-    setStatus('已就緒','黃色與藍色由本體場產生；AI 只輔助手部。');
-  }catch(e){
-    console.warn(e);
-    setStatus('AI 手部輔助不可用','仍可用手動手部標記與本體場。');
-  }
+    const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
+    const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+    S.hand=await mp.HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25});
+    S.handReady=true;setStatus('已就緒','載入影片後先初始化球；AI 手部只輔助紅色手／前臂。');
+  }catch(e){console.warn(e);setStatus('手部 AI 不可用','仍可用手動手部標記；球追蹤與本體場可獨立使用。')}
 }
-
 function analyzeHands(now){
-  if(!P.useAI||!S.hand||!video.videoWidth||now-S.lastHandAt<45)return;
-  S.lastHandAt=now;
-  try{
-    const r=S.hand.detectForVideo(video,now);
-    const out=[];
-    for(let i=0;i<(r.landmarks||[]).length;i++){
-      const side=r.handednesses?.[i]?.[0]?.categoryName||('Hand'+i);
-      const lm=r.landmarks[i].map(p=>({x:p.x*cv.width,y:p.y*cv.height}));
-      const prev=S.hands.find(h=>h.side===side);
-      if(prev?.lm?.length===lm.length){
-        const a=.38;
-        for(let j=0;j<lm.length;j++){
-          lm[j].x=prev.lm[j].x*(1-a)+lm[j].x*a;
-          lm[j].y=prev.lm[j].y*(1-a)+lm[j].y*a;
-        }
-      }
-      const ids=[0,5,9,13,17];
-      let cx=0,cy=0;
-      for(const id of ids){cx+=lm[id].x;cy+=lm[id].y}
-      cx/=ids.length;cy/=ids.length;
-      out.push({side,lm,cx,cy});
-    }
-    S.hands=out;
-  }catch(e){console.warn('hand frame',e)}
+  if(!P.useHands||!S.hand||!video.videoWidth||now-S.lastHandAt<55)return;S.lastHandAt=now;
+  try{const r=S.hand.detectForVideo(video,now),out=[];for(let i=0;i<(r.landmarks||[]).length;i++){const side=r.handednesses?.[i]?.[0]?.categoryName||('Hand'+i),lm=r.landmarks[i].map(p=>({x:p.x*cv.width,y:p.y*cv.height})),prev=S.hands.find(h=>h.side===side);if(prev?.lm?.length===lm.length){const a=.38;for(let j=0;j<lm.length;j++){lm[j].x=lerp(prev.lm[j].x,lm[j].x,a);lm[j].y=lerp(prev.lm[j].y,lm[j].y,a)}}const ids=[0,5,9,13,17];let cx=0,cy=0;for(const id of ids){cx+=lm[id].x;cy+=lm[id].y}out.push({side,lm,cx:cx/ids.length,cy:cy/ids.length})}S.hands=out}catch(e){console.warn('hand frame',e)}
 }
 
-function bodyFieldParams(){
-  return{
-    cx:cv.width*P.bodyX,
-    cy:cv.height*P.bodyY,
-    rx:cv.width*P.bodyRX,
-    ry:cv.height*P.bodyRY
-  };
+function descriptorAt(cx,cy,r){
+  const fd=S.frameData;if(!fd)return null;const N=10,R=Math.max(8,r),vals=[];
+  for(let j=0;j<N;j++){const ny=(j+.5)/N*2-1;for(let i=0;i<N;i++){const nx=(i+.5)/N*2-1;if(nx*nx+ny*ny>1){vals.push(0,0,0);continue}const [rr,gg,bb]=pixel(cx+nx*R,cy+ny*R),sum=rr+gg+bb+1;vals.push(rr/sum,gg/sum,bb/sum)}}return new Float32Array(vals)
+}
+function descriptorError(a,b){if(!a||!b||a.length!==b.length)return 1;let e=0,n=0;for(let i=0;i<a.length;i+=3){if(a[i]===0&&a[i+1]===0&&a[i+2]===0)continue;e+=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);n+=3}return n?e/n:1}
+function colorDiff(a,b){return(Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]))/(255*3)}
+function estimateRadius(cx,cy){
+  if(!S.frameData&&!captureFrame())return P.ballR;const maxR=Math.floor(Math.min(220,cx,cy,raw.width-cx,raw.height-cy));if(maxR<18)return P.ballR;
+  const scores=[];for(let r=14;r<=maxR;r+=3){let s=0,n=0;for(let k=0;k<40;k++){const a=k/40*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a),pin=pixel(cx+cs*(r-4),cy+sn*(r-4)),pout=pixel(cx+cs*(r+4),cy+sn*(r+4));s+=colorDiff(pin,pout);n++}scores.push({r,s:s/Math.max(1,n)})}
+  for(let i=1;i<scores.length-1;i++)scores[i].sm=(scores[i-1].s+scores[i].s*2+scores[i+1].s)/4;
+  let best=null;for(const x of scores){const sm=x.sm??x.s,score=sm*(.86+.14*Math.sqrt(x.r/maxR));if(!best||score>best.score)best={r:x.r,score}}
+  return best&&best.score>.055?best.r:P.ballR;
+}
+function initBall(x,y){
+  if(!captureFrame())return;let r=P.ballR;if(P.autoRadius){r=estimateRadius(x,y);P.ballR=r;$('#ballR').value=Math.round(r)}const desc=descriptorAt(x,y,r);if(!desc)return;
+  S.ball={x,y,r,measured:true};S.lastGoodBall={x,y,r};S.template=desc;S.kx=new KF1D(x);S.ky=new KF1D(y);S.kr=new KF1D(r);S.trackConf=1;S.trackState='ok';S.trackMode='初始化';S.missFrames=0;S.lastTrackTime=performance.now();S.prevDepth=null;S.prevDepthTime=null;S.depthVel=0;S.trail=[];S.picking=null;
+  ['seedBall','leftHand','rightHand','setBody'].forEach(id=>$('#'+id).classList.remove('active'));addEvent('track','球追蹤初始化',`半徑 ${r.toFixed(0)} px`);setStatus('球已初始化',`半徑 ${r.toFixed(0)} px；播放後開始追蹤。`);draw()
+}
+function searchBall(predX,predY,predR){
+  if(!S.frameData||!S.template)return null;const search=Math.max(30,predR*1.35),step=Math.max(4,Math.round(predR*.16)),scales=[.88,.96,1.04,1.12];let best=null;
+  for(const sf of scales){const rr=clamp(predR*sf,10,240);for(let dy=-search;dy<=search;dy+=step){for(let dx=-search;dx<=search;dx+=step){const d=Math.hypot(dx,dy);if(d>search)continue;const x=predX+dx,y=predY+dy;if(x<rr*.65||y<rr*.65||x>raw.width-rr*.65||y>raw.height-rr*.65)continue;const desc=descriptorAt(x,y,rr),appearance=descriptorError(S.template,desc),motionPenalty=d/(search+1)*.085,radiusPenalty=Math.abs(Math.log(rr/Math.max(1,predR)))*.08,score=appearance+motionPenalty+radiusPenalty;if(!best||score<best.score)best={x,y,r:rr,desc,appearance,score,d}}}}
+  if(!best)return null;best.conf=clamp(1-best.appearance/.19,0,1);return best
+}
+function markLost(reason){
+  if(S.trackState!=='lost')addEvent('track','追蹤失敗',reason);S.trackState='lost';S.trackMode='Lost／請重新初始化';S.trackConf=0;S.prevDepth=null;S.prevDepthTime=null;S.depthVel=0;if(S.lastGoodBall)S.ball={...S.lastGoodBall,lost:true};setStatus('球追蹤失敗','已停止更新 Depth／TTC，請暫停並重新初始化球。')
+}
+function trackBall(now){
+  if(!S.ball||!S.kx||!S.ky||!S.kr||S.trackState==='lost')return;if(!captureFrame())return;const dt=clamp((now-(S.lastTrackTime||now))/1000,.008,.12);S.lastTrackTime=now;
+  const px=S.kx.predict(dt),py=S.ky.predict(dt),pr=clamp(S.kr.predict(dt),10,240);if(px<-pr||py<-pr||px>cv.width+pr||py>cv.height+pr){markLost('預測位置離開畫面');return}
+  const m=searchBall(px,py,pr);let accepted=false;
+  if(m&&m.conf>=P.confMin){const jump=Math.hypot(m.x-px,m.y-py),maxJump=Math.max(34,pr*1.25),ratio=m.r/Math.max(1,pr),radiusOK=ratio>.78&&ratio<1.28;if(jump<=maxJump&&radiusOK){const R=lerp(44,8,m.conf);S.kx.update(m.x,R);S.ky.update(m.y,R);S.kr.update(m.r,R*.22);S.trackConf=lerp(S.trackConf,m.conf,.55);S.trackState='ok';S.trackMode='視覺 + Kalman';S.missFrames=0;accepted=true;if(m.conf>.76){const a=.025;for(let i=0;i<S.template.length;i++)S.template[i]=lerp(S.template[i],m.desc[i],a)}}}
+  if(!accepted){S.missFrames++;S.trackConf*=.78;if(S.missFrames<=P.maxCoast&&S.trackConf>.20){S.trackState='coast';S.trackMode=`短暫預測 ${S.missFrames}/${P.maxCoast}`}else{markLost(`連續 ${S.missFrames} 格沒有可信量測`);return}}
+  S.ball={x:S.kx.x,y:S.ky.x,r:clamp(S.kr.x,10,240),measured:accepted,lost:false};if(accepted)S.lastGoodBall={x:S.ball.x,y:S.ball.y,r:S.ball.r};S.trail.unshift({x:S.ball.x,y:S.ball.y,measured:accepted});S.trail=S.trail.slice(0,36)
+  if(S.lastTrackState!==S.trackState){if(S.trackState==='ok'&&S.lastTrackState==='coast')addEvent('track','追蹤恢復','重新取得可信視覺量測');S.lastTrackState=S.trackState}
 }
 
-// Analytic camera/body-centered dome field.
-// The center is intentionally below the visible frame.
-// q<=1+P.pps is the yellow PPS dome.
-// q<=1+P.pps+P.far is the blue outer dome.
-function fieldQ(x,y){
-  const b=bodyFieldParams();
-  const dx=(x-b.cx)/Math.max(1,b.rx);
-  const dy=(y-b.cy)/Math.max(1,b.ry);
-  return Math.sqrt(dx*dx+dy*dy);
+function focalPx(){return cv.width/(2*Math.tan(P.fov*Math.PI/360))}
+function reliableForPhysics(){return S.trackState==='ok' || (S.trackState==='coast'&&S.missFrames<=2&&S.trackConf>.34)}
+function kinematics(ball,now){
+  const valid=!!ball&&!ball.lost&&reliableForPhysics();if(!valid)return{valid:false,depth:null,approach:0,ttc:Infinity,vx:S.kx?.v||0,vy:S.ky?.v||0,speed:Math.hypot(S.kx?.v||0,S.ky?.v||0),dr:S.kr?.v||0};
+  const z=focalPx()*P.ballD/(2*Math.max(3,ball.r));if(S.prevDepth!=null&&S.prevDepthTime!=null){const dt=clamp((now-S.prevDepthTime)/1000,.01,.25),vz=(z-S.prevDepth)/dt;S.depthVel=lerp(S.depthVel,vz,.25)}S.prevDepth=z;S.prevDepthTime=now;const approach=Math.max(0,-S.depthVel),contactZ=.28,ttc=approach>.035&&z>contactZ?Math.max(0,(z-contactZ)/approach):Infinity,vx=S.kx?.v||0,vy=S.ky?.v||0;return{valid:true,depth:z,approach,ttc,vx,vy,speed:Math.hypot(vx,vy),dr:S.kr?.v||0}
 }
 
-function zoneAt(x,y){
-  const q=fieldQ(x,y);
-  if(q<=1+P.pps)return'pps';
-  if(q<=1+P.pps+P.far)return'far';
-  return'outside';
+function handItems(){const arr=[],used=new Set();for(const h of S.hands){if(h.side==='Left'||h.side==='Right'){arr.push({side:h.side,x:h.cx,y:h.cy,h});used.add(h.side)}}for(const side of ['Left','Right'])if(!used.has(side)&&S.manualHands[side])arr.push({side,x:S.manualHands[side].x,y:S.manualHands[side].y,h:null});return arr}
+function bodyParams(){return{cx:cv.width*P.bodyX,cy:cv.height*P.bodyY,rx:cv.width*P.bodyRX,ry:cv.height*P.bodyRY}}
+function bodyQ(x,y){const b=bodyParams(),n=3.4,dx=Math.abs((x-b.cx)/Math.max(1,b.rx)),dy=Math.abs((y-b.cy)/Math.max(1,b.ry));return Math.pow(Math.pow(dx,n)+Math.pow(dy,n),1/n)}
+function directionAlign(x,y,tx,ty,power=7){const b=bodyParams(),ax=x-b.cx,ay=y-b.cy,bx=tx-b.cx,by=ty-b.cy,ad=Math.hypot(ax,ay),bd=Math.hypot(bx,by);if(ad<1||bd<1)return 0;return Math.pow(Math.max(0,(ax*bx+ay*by)/(ad*bd)),power)}
+function fieldLimits(x,y,kin){
+  let ext=0;if(S.ball&&kin.valid){const approachN=clamp(kin.approach/5,0,1),ttcN=isFinite(kin.ttc)?clamp(1-kin.ttc/.9,0,1):0,align=directionAlign(x,y,S.ball.x,S.ball.y,8);ext+=align*(P.motionGain*approachN+P.ttcGain*ttcN)*.72}
+  const b=bodyParams();for(const h of handItems()){const reach=clamp(Math.hypot(h.x-b.cx,h.y-b.cy)/(cv.height*.7),0,1),align=directionAlign(x,y,h.x,h.y,9);ext+=align*P.handGain*reach*.55}
+  const ppsOuter=1+P.pps+ext,farOuter=ppsOuter+P.far;return{ppsOuter,farOuter,ext}
 }
+function nearestHand(ball){let best=Infinity;for(const h of handItems())best=Math.min(best,Math.hypot(ball.x-h.x,ball.y-h.y));return best}
+function activationAt(ball,kin){if(!ball)return 0;const q=bodyQ(ball.x,ball.y),lim=fieldLimits(ball.x,ball.y,kin),spatial=clamp(1-(q-1)/Math.max(.01,lim.ppsOuter-1),0,1),ttcN=kin.valid&&isFinite(kin.ttc)?clamp(1-kin.ttc/.9,0,1):0,appN=kin.valid?clamp(kin.approach/5,0,1):0,hand=nearestHand(ball),handN=isFinite(hand)?clamp(1-hand/(cv.width*.34),0,1):0;return clamp(.42*spatial+.23*appN+.22*ttcN+.13*handN,0,1)}
+function zone(ball,kin){if(!ball||ball.lost)return'none';const hd=nearestHand(ball);if(isFinite(hd)&&hd<=ball.r+cv.width*.045)return'contact';const q=bodyQ(ball.x,ball.y),lim=fieldLimits(ball.x,ball.y,kin);if(q<=1)return'body';if(q<=lim.ppsOuter)return'pps';if(q<=lim.farOuter)return'far';return'outside'}
+function zoneLabel(z){if(z==='contact')return'紅色：手部接觸';if(z==='body')return'本體區／高度互動';if(z==='pps')return'黃色：Dynamic PPS';if(z==='far')return'藍色：外層空間';if(z==='outside')return'外層之外';return'等待可靠球追蹤'}
 
-function smoothstep(a,b,x){
-  const t=clamp((x-a)/(b-a),0,1);
-  return t*t*(3-2*t);
+function smoothstep(a,b,x){const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)}
+function drawField(kin){
+  if(!P.showField)return;const scale=.24,sw=Math.max(150,Math.round(cv.width*scale)),sh=Math.max(110,Math.round(cv.height*scale));if(!S.fieldCanvas||S.fieldCanvas.width!==sw||S.fieldCanvas.height!==sh){S.fieldCanvas=document.createElement('canvas');S.fieldCanvas.width=sw;S.fieldCanvas.height=sh}const t=S.fieldCanvas.getContext('2d'),img=t.createImageData(sw,sh),feather=.045;
+  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const X=x/scale,Y=y/scale,q=bodyQ(X,Y),lim=fieldLimits(X,Y,kin);let R=0,G=0,B=0,A=0;if(q>1-feather&&q<=lim.ppsOuter+feather){const band=smoothstep(1-feather,1+feather,q)*(1-smoothstep(lim.ppsOuter-feather,lim.ppsOuter+feather,q));if(band>0){R=255;G=217;B=42;A=Math.round(255*Math.min(.60,P.alpha*1.12)*band)}}if(q>lim.ppsOuter-feather&&q<=lim.farOuter+feather){const band=smoothstep(lim.ppsOuter-feather,lim.ppsOuter+feather,q)*(1-smoothstep(lim.farOuter-feather,lim.farOuter+feather,q));const aa=Math.round(255*Math.min(.44,P.alpha*.86)*band);if(aa>A||q>lim.ppsOuter+feather){R=51;G=143;B=255;A=aa}}const i=(y*sw+x)*4;img.data[i]=R;img.data[i+1]=G;img.data[i+2]=B;img.data[i+3]=A}t.putImageData(img,0,0);ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(S.fieldCanvas,0,0,cv.width,cv.height);if(P.showGuide){const b=bodyParams();ctx.setLineDash([7,7]);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(b.cx,b.cy,b.rx,b.ry,0,0,Math.PI*2);ctx.stroke()}ctx.restore()
 }
+function convexHull(points){if(points.length<3)return points;const pts=[...points].sort((a,b)=>a.x===b.x?a.y-b.y:a.x-b.x),cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[];for(const p of pts){while(lo.length>=2&&cross(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p)}const up=[];for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(up.length>=2&&cross(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p)}lo.pop();up.pop();return lo.concat(up)}
+function drawHands(){const col='rgba(255,62,73,.78)';for(const item of handItems()){if(item.h){const lm=item.h.lm,hull=convexHull(lm),wrist=lm[0],palm=lm[9];let dx=wrist.x-palm.x,dy=wrist.y-palm.y,d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;if(dy<0){dx=-dx;dy=-dy}const entry={x:wrist.x+dx*cv.height*.42,y:wrist.y+dy*cv.height*.42},w=clamp(Math.hypot(lm[5].x-lm[17].x,lm[5].y-lm[17].y)*.88,24,105);ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w*.78;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(entry.x,entry.y);ctx.lineTo(wrist.x,wrist.y);ctx.stroke();ctx.fillStyle=col;ctx.strokeStyle='#ff2b39';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(hull[0].x,hull[0].y);for(let i=1;i<hull.length;i++)ctx.lineTo(hull[i].x,hull[i].y);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}else{ctx.save();ctx.fillStyle=col;ctx.beginPath();ctx.arc(item.x,item.y,P.ballR*.72,0,Math.PI*2);ctx.fill();ctx.restore()}}}
+function drawTrail(){if(!P.showTrail||S.trail.length<2)return;ctx.save();ctx.strokeStyle='rgba(53,239,106,.52)';ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.beginPath();S.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.restore()}
+function drawBall(ball,z){if(!ball)return;ctx.save();if(ball.lost){ctx.strokeStyle='rgba(255,184,74,.9)';ctx.setLineDash([8,6]);ctx.lineWidth=3;ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ffb84a';ctx.font=`700 ${Math.max(13,cv.width/82)}px system-ui`;ctx.fillText('Last known · LOST',ball.x+ball.r+8,ball.y);ctx.restore();return}ctx.strokeStyle='#35ef6a';ctx.fillStyle='#35ef6a';ctx.lineWidth=Math.max(3,cv.width/430);ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(ball.x,ball.y,Math.max(4,cv.width/240),0,Math.PI*2);ctx.fill();const vx=S.kx?.v||0,vy=S.ky?.v||0,mag=Math.hypot(vx,vy);if(mag>2){const L=Math.min(cv.width*.15,mag*.06),ux=vx/mag,uy=vy/mag;ctx.strokeStyle='rgba(53,239,106,.88)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ball.x,ball.y);ctx.lineTo(ball.x+ux*L,ball.y+uy*L);ctx.stroke()}ctx.font=`700 ${Math.max(13,cv.width/82)}px system-ui`;ctx.fillText(zoneLabel(z),ball.x+ball.r+8,ball.y);ctx.restore()}
 
-function drawBodyField(){
-  const b=bodyFieldParams();
-  const a=P.alpha;
-
-  // Render soft elliptical shells on an offscreen canvas.
-  // Inner body region stays fully transparent.
-  const scale=.32;
-  const sw=Math.max(160,Math.round(cv.width*scale));
-  const sh=Math.max(120,Math.round(cv.height*scale));
-  const ov=document.createElement('canvas');
-  ov.width=sw; ov.height=sh;
-  const o=ov.getContext('2d');
-  const img=o.createImageData(sw,sh);
-
-  const cx=b.cx*scale, cy=b.cy*scale;
-  const rx=b.rx*scale, ry=b.ry*scale;
-  const ppsOuter=1+P.pps;
-  const farOuter=1+P.pps+P.far;
-  const feather=.035;
-
-  for(let y=0;y<sh;y++){
-    for(let x=0;x<sw;x++){
-      const dx=(x-cx)/Math.max(1,rx);
-      const dy=(y-cy)/Math.max(1,ry);
-      const q=Math.sqrt(dx*dx+dy*dy);
-
-      let R=0,G=0,B=0,A=0;
-
-      // Yellow shell: q in (1, 1+pps)
-      if(q>1-feather && q<=ppsOuter+feather){
-        const inA=smoothstep(1-feather,1+feather,q);
-        const outA=1-smoothstep(ppsOuter-feather,ppsOuter+feather,q);
-        const band=inA*outA;
-        if(band>0){
-          R=255;G=217;B=31;A=Math.round(255*Math.min(.62,a*1.08)*band);
-        }
-      }
-
-      // Blue shell: q in (1+pps, 1+pps+far)
-      if(q>ppsOuter-feather && q<=farOuter+feather){
-        const inA=smoothstep(ppsOuter-feather,ppsOuter+feather,q);
-        const outA=1-smoothstep(farOuter-feather,farOuter+feather,q);
-        const band=inA*outA;
-        if(band>0){
-          const alpha=Math.round(255*Math.min(.46,a*.84)*band);
-          if(alpha>A || q>ppsOuter+feather){
-            R=45;G=140;B=255;A=alpha;
-          }
-        }
-      }
-
-      const i=(y*sw+x)*4;
-      img.data[i]=R;img.data[i+1]=G;img.data[i+2]=B;img.data[i+3]=A;
-    }
-  }
-
-  o.putImageData(img,0,0);
-
-  ctx.save();
-  ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(ov,0,0,cv.width,cv.height);
-
-  // crisp teaching boundaries
-  ctx.setLineDash([10,8]);
-  ctx.lineWidth=Math.max(2,cv.width/520);
-
-  ctx.beginPath();
-  ctx.ellipse(b.cx,b.cy,b.rx*farOuter,b.ry*farOuter,0,0,Math.PI*2);
-  ctx.strokeStyle='rgba(90,178,255,.92)';
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.ellipse(b.cx,b.cy,b.rx*ppsOuter,b.ry*ppsOuter,0,0,Math.PI*2);
-  ctx.strokeStyle='rgba(255,232,50,.96)';
-  ctx.stroke();
-
-  if(P.showGuide){
-    ctx.setLineDash([6,6]);
-    ctx.strokeStyle='rgba(255,255,255,.34)';
-    ctx.beginPath();ctx.ellipse(b.cx,b.cy,b.rx,b.ry,0,0,Math.PI*2);ctx.stroke();
-  }
-  ctx.restore();
+function addEvent(type,label,detail=''){const t=video.currentTime||0,last=S.events[0];if(last&&last.type===type&&last.label===label&&Math.abs(last.time-t)<.2)return;S.events.unshift({type,label,detail,time:t});S.events=S.events.slice(0,40);$('#events').innerHTML=S.events.map((e,i)=>`<div class="event ${i===0?'current':''}"><b>${fmt(e.time)}</b> · ${e.label}${e.detail?`<div class="small">${e.detail}</div>`:''}</div>`).join('')}
+function recordZone(z){if(!S.ball||S.ball.lost||z===S.lastZone)return;S.lastZone=z;addEvent('zone',zoneLabel(z))}
+function teachingText(ball,kin,z){
+  if(!ball)return{n:'先初始化球，建立「現象 → 身體 → 概念 → 預測」的觀察起點。',e:'目前沒有球的可靠量測。',p:'先找出畫面中的球，描述它相對於身體的位置。'};
+  if(ball.lost)return{n:'追蹤已失敗。系統刻意停止 Depth／TTC，避免把錯誤追蹤當成物理事實。',e:'證據：連續影格沒有可信外觀量測。推論：目前不足以估計深度與碰撞時間。',p:'請重新初始化球，再比較失追前後的視覺證據。'};
+  const dir=kin.dr>2?'視覺大小正在增加':kin.dr<-2?'視覺大小正在減少':'視覺大小變化不明顯';
+  const measure=`量測：r=${ball.r.toFixed(1)} px，影像速度=${kin.speed.toFixed(0)} px/s${kin.valid&&kin.depth?`，Z≈${kin.depth.toFixed(2)} m`:''}${kin.valid&&isFinite(kin.ttc)?`，TTC≈${kin.ttc.toFixed(2)} s`:''}。`;
+  const infer=`推論：${zoneLabel(z)}；${dir}。`;
+  let n=z==='contact'?'球已接近紅色手部接觸區，可比較接觸前後的方向與速度。':z==='body'?'球進入本體高互動區，應關注接觸或閃避行動。':z==='pps'?'球進入黃色 Dynamic PPS：空間意義已從「看見」轉向「準備行動」。':z==='far'?'球在藍色外層空間：主要任務仍是預判方向與接近趨勢。':'球仍在主要互動空間之外。';
+  let p='觀察球的位置、大小與方向變化，先用自然語言描述現象。';
+  if(S.teachMode==='predict')p=isFinite(kin.ttc)?`不要先看結果：TTC 約 ${kin.ttc.toFixed(2)} 秒。你預測下一個事件是進入 PPS、接觸、改變方向，還是離開？`:'根據目前方向與球大小變化，預測下一個事件，並說明依據。';
+  if(S.teachMode==='explain')p='把「可直接量測的證據」與「你對事件的解釋」分成兩句；哪些是事實，哪些是推論？';
+  if(S.teachMode==='transfer')p='換一段不同球速、角度或站位的影片：同一個 PPS／TTC 概念是否仍能幫助你調整行動？';
+  return{n,e:measure+' '+infer,p}
 }
-
-function handWidth(h){
-  if(!h?.lm?.[5]||!h?.lm?.[17])return P.handW;
-  return clamp(Math.hypot(h.lm[5].x-h.lm[17].x,h.lm[5].y-h.lm[17].y)*.90,24,105);
+function updateUI(ball,kin,z){
+  const card=$('#trackCard');card.classList.remove('ok','warn','bad');if(S.trackState==='ok')card.classList.add('ok');else if(S.trackState==='coast')card.classList.add('warn');else if(S.trackState==='lost')card.classList.add('bad');
+  $('#mTrack').textContent=ball?S.trackMode:'等待球';$('#mConf').textContent=ball&&!ball.lost?Math.round(S.trackConf*100)+'%':'—';$('#mRadius').textContent=ball&&!ball.lost?ball.r.toFixed(1)+' px':'—';$('#mSpeed').textContent=ball&&!ball.lost?kin.speed.toFixed(0)+' px/s':'—';$('#mDepth').textContent=kin.valid&&kin.depth?kin.depth.toFixed(2)+' m':(S.trackState==='lost'?'暫停':'—');$('#mApproach').textContent=kin.valid?kin.approach.toFixed(2)+' m/s':(S.trackState==='lost'?'暫停':'—');$('#mTTC').textContent=kin.valid&&isFinite(kin.ttc)?kin.ttc.toFixed(2)+' s':(S.trackState==='lost'?'暫停':'—');$('#mActivation').textContent=ball&&!ball.lost?Math.round(activationAt(ball,kin)*100)+'%':'—';$('#mZone').textContent=zoneLabel(z);$('#mHands').textContent=handItems().length;
+  const tt=teachingText(ball,kin,z);$('#narration').textContent=tt.n;$('#evidence').textContent=tt.e;$('#taskPrompt').textContent=tt.p;
+  $('#oBallR').value=Math.round(P.ballR)+' px';$('#oFov').value=Math.round(P.fov)+'°';$('#oBallD').value=Math.round(P.ballD*100)+' cm';$('#oConfMin').value=Math.round(P.confMin*100)+'%';$('#oCoast').value=P.maxCoast+' 格';$('#oBodyX').value=Math.round(P.bodyX*100)+'%';$('#oBodyY').value=Math.round(P.bodyY*100)+'%';$('#oBodyRX').value=Math.round(P.bodyRX*100)+'%';$('#oBodyRY').value=Math.round(P.bodyRY*100)+'%';$('#oPps').value=Math.round(P.pps*100)+'%';$('#oFar').value=Math.round(P.far*100)+'%';$('#oHandGain').value=P.handGain.toFixed(2);$('#oMotionGain').value=P.motionGain.toFixed(2);$('#oTtcGain').value=P.ttcGain.toFixed(2);$('#oAlpha').value=Math.round(P.alpha*100)+'%';
+  S.latest={version:'PoseTwin POV Teaching v6.1',time:video.currentTime||0,tracking:{state:S.trackState,mode:S.trackMode,confidence:S.trackConf,ball:ball&&!ball.lost?{x:ball.x,y:ball.y,r:ball.r}:null},measurements:{depthM:kin.valid?kin.depth:null,approachMS:kin.valid?kin.approach:null,ttcS:kin.valid&&isFinite(kin.ttc)?kin.ttc:null,imageSpeedPxS:kin.speed},embodied:{zone:z,zoneLabel:zoneLabel(z),ppsActivation:ball&&!ball.lost?activationAt(ball,kin):null,hands:handItems().length},teaching:{mode:S.teachMode,narration:tt.n,evidence:tt.e,prompt:tt.p},events:[...S.events].reverse()}
 }
+function draw(now=performance.now()){if(!video.videoWidth)return;setSize();ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(video,0,0,cv.width,cv.height);const ball=S.ball,kin=kinematics(ball,now),z=zone(ball,kin);drawField(kin);drawHands();drawTrail();drawBall(ball,z);updateUI(ball,kin,z);recordZone(z)}
+function loop(now){if(video.readyState>=2){const moved=video.currentTime!==S.lastVideoTime,pausedRefresh=video.paused&&(now-S.lastPausedAt>180);if(moved||pausedRefresh){if(moved)S.lastVideoTime=video.currentTime;if(pausedRefresh)S.lastPausedAt=now;analyzeHands(now);if(moved&&S.ball&&S.trackState!=='lost')trackBall(now);draw(now);$('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;$('#time').textContent=`${fmt(video.currentTime)} / ${fmt(video.duration)}`}}requestAnimationFrame(loop)}
 
-function inferEntry(h){
-  const wrist=h.lm[0],palm=h.lm[9];
-  let dx=wrist.x-palm.x,dy=wrist.y-palm.y,d=Math.hypot(dx,dy)||1;
-  dx/=d;dy/=d;
-  if(dy<0){dx=-dx;dy=-dy}
-  const targetY=cv.height+40;
-  let t=Math.abs(dy)>.05?(targetY-wrist.y)/dy:cv.height*.45;
-  t=clamp(t,cv.height*.16,cv.height*.72);
-  return{x:wrist.x+dx*t,y:wrist.y+dy*t};
-}
+cv.addEventListener('pointerdown',e=>{if(!video.videoWidth||!S.picking)return;const p=pointerXY(e),mode=S.picking;if(mode==='ball')initBall(p.x,p.y);else if(mode==='Left'||mode==='Right'){S.manualHands[mode]=p;S.picking=null;addEvent('body',mode==='Left'?'指定左手':'指定右手','手動校正');clearPickButtons();draw()}else if(mode==='body'){P.bodyX=p.x/cv.width;P.bodyY=p.y/cv.height;$('#bodyX').value=Math.round(P.bodyX*100);$('#bodyY').value=Math.round(P.bodyY*100);S.picking=null;addEvent('body','設定本體中心','以身體作為空間標尺');clearPickButtons();draw()}})
+function clearPickButtons(){['seedBall','leftHand','rightHand','setBody'].forEach(k=>$('#'+k).classList.remove('active'))}
+function beginPick(mode,id,msg){if(!video.videoWidth)return;video.pause();S.picking=mode;clearPickButtons();$('#'+id).classList.add('active');$('#hint').innerHTML=msg}
+$('#seedBall').onclick=()=>beginPick('ball','seedBall','請點影片中的 <b>球中心</b>。若自動半徑不準，可調整「初始球半徑」後再點一次。');
+$('#leftHand').onclick=()=>beginPick('Left','leftHand','請點 <b>左手掌中心</b>。');
+$('#rightHand').onclick=()=>beginPick('Right','rightHand','請點 <b>右手掌中心</b>。');
+$('#setBody').onclick=()=>beginPick('body','setBody','請點 <b>第一人稱本體中心</b>；通常在畫面下方中央或畫面外下方。');
+function resetAnalysis(){S.ball=null;S.lastGoodBall=null;S.template=null;S.kx=S.ky=S.kr=null;S.trackConf=0;S.trackState='idle';S.trackMode='等待初始化';S.missFrames=0;S.trail=[];S.events=[];S.lastZone='none';S.prevDepth=null;S.prevDepthTime=null;S.depthVel=0;S.latest=null;$('#events').innerHTML='<div class="event">尚無事件</div>';draw()}
+$('#resetAll').onclick=resetAnalysis;
+$('#exportJson').onclick=()=>{if(!S.latest)return;const blob=new Blob([JSON.stringify(S.latest,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='posetwin-teaching-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 
-function drawCapsule(a,b,w,color){
-  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();
-}
+$('#videoFile').onchange=e=>{const f=e.target.files?.[0];if(!f)return;video.src=URL.createObjectURL(f);video.onloadedmetadata=()=>{setSize();for(const id of ['play','pause','prev','next','seek'])$('#'+id).disabled=false;S.hands=[];S.manualHands={Left:null,Right:null};S.lastVideoTime=-1;resetAnalysis();setStatus('影片已載入',`${video.videoWidth}×${video.videoHeight} · 請先初始化球`);draw()}};
+$('#play').onclick=()=>video.play();$('#pause').onclick=()=>video.pause();function step(d){if(!video.duration)return;video.pause();video.currentTime=clamp(video.currentTime+d/30,0,video.duration);S.lastPausedAt=0}$('#prev').onclick=()=>step(-1);$('#next').onclick=()=>step(1);$('#seek').oninput=()=>{if(video.duration)video.currentTime=video.duration*(+$('#seek').value/1000)};
+video.onplay=()=>setStatus(S.trackState==='lost'?'追蹤失敗':'分析中',S.trackState==='lost'?'請重新初始化球':'現象 → 身體 → 概念 → 預測 → 行動');video.onpause=()=>{setStatus('已暫停','可逐格、重新標球、校正手部或設定本體中心');S.lastPausedAt=0};
 
-function drawAIHand(h){
-  const w=handWidth(h),lm=h.lm,entry=inferEntry(h),wrist=lm[0];
+$('#useHands').onchange=e=>{P.useHands=e.target.checked;if(!P.useHands)S.hands=[];draw()};$('#autoRadius').onchange=e=>P.autoRadius=e.target.checked;$('#showTrail').onchange=e=>{P.showTrail=e.target.checked;draw()};$('#showField').onchange=e=>{P.showField=e.target.checked;draw()};$('#showGuide').onchange=e=>{P.showGuide=e.target.checked;draw()};
+for(const [id,key,scale] of [['ballR','ballR',1],['fov','fov',1],['ballD','ballD',.01],['confMin','confMin',.01],['maxCoast','maxCoast',1],['bodyX','bodyX',.01],['bodyY','bodyY',.01],['bodyRX','bodyRX',.01],['bodyRY','bodyRY',.01],['pps','pps',.01],['far','far',.01],['handGain','handGain',.01],['motionGain','motionGain',.01],['ttcGain','ttcGain',.01],['alpha','alpha',.01]]){$('#'+id).oninput=e=>{P[key]=+e.target.value*scale;draw()}}
 
-  // forearm + wrist
-  drawCapsule(entry,wrist,w*.82,`rgba(255,53,65,${Math.min(.80,P.alpha*1.48)})`);
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active')});
+for(const [id,mode] of [['modeObserve','observe'],['modePredict','predict'],['modeExplain','explain'],['modeTransfer','transfer']]){$('#'+id).onclick=()=>{S.teachMode=mode;for(const x of ['modeObserve','modePredict','modeExplain','modeTransfer'])$('#'+x).classList.remove('active');$('#'+id).classList.add('active');draw()}}
+window.addEventListener('error',e=>setStatus('程式錯誤',e.message||'未知錯誤'));window.addEventListener('unhandledrejection',e=>setStatus('載入錯誤',e.reason?.message||String(e.reason||'')));
 
-  // palm polygon
-  const ids=[0,1,2,5,9,13,17];
-  ctx.save();
-  ctx.fillStyle=`rgba(255,53,65,${Math.min(.88,P.alpha*1.65)})`;
-  ctx.beginPath();ctx.moveTo(lm[ids[0]].x,lm[ids[0]].y);
-  for(let i=1;i<ids.length;i++)ctx.lineTo(lm[ids[i]].x,lm[ids[i]].y);
-  ctx.closePath();ctx.fill();
-
-  // fingers
-  const chains=[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]];
-  for(const ch of chains){
-    for(let i=0;i<ch.length-1;i++){
-      drawCapsule(lm[ch[i]],lm[ch[i+1]],Math.max(6,w*(.20-i*.025)),`rgba(255,53,65,${Math.min(.92,P.alpha*1.72)})`);
-    }
-  }
-
-  // clean red outline
-  ctx.strokeStyle='#ff2635';ctx.lineWidth=2.2;ctx.lineJoin='round';
-  ctx.beginPath();ctx.arc(h.cx,h.cy,w*.46,0,Math.PI*2);ctx.stroke();
-
-  if(P.showHandSkeleton){
-    ctx.strokeStyle='rgba(255,255,255,.76)';ctx.lineWidth=1.2;
-    const cons=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-    for(const [a,b] of cons){ctx.beginPath();ctx.moveTo(lm[a].x,lm[a].y);ctx.lineTo(lm[b].x,lm[b].y);ctx.stroke()}
-  }
-  ctx.restore();
-}
-
-function drawManualHand(side,p){
-  if(!p)return;
-  const dx=(p.x-cv.width*.5)*.18;
-  const entry={x:p.x+dx,y:cv.height+35};
-  const w=P.handW;
-  drawCapsule(entry,p,w,`rgba(255,53,65,${Math.min(.86,P.alpha*1.6)})`);
-  ctx.save();ctx.fillStyle=`rgba(255,53,65,${Math.min(.90,P.alpha*1.65)})`;
-  ctx.beginPath();ctx.arc(p.x,p.y,w*.48,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#ff2635';ctx.lineWidth=2;ctx.stroke();ctx.restore();
-}
-
-function currentHands(){
-  const used=new Set(),arr=[];
-  for(const h of S.hands){if(h.side==='Left'||h.side==='Right'){arr.push({type:'ai',side:h.side,h});used.add(h.side)}}
-  for(const side of ['Left','Right'])if(!used.has(side)&&S.manualHands[side])arr.push({type:'manual',side,p:S.manualHands[side]});
-  return arr;
-}
-
-function ballRadiusAtTime(t){
-  const k=resolveBall(t);
-  return k?k.r:P.ballR;
-}
-function addBallKey(x,y){
-  const t=video.currentTime||0,key={time:t,x,y,r:P.ballR};
-  const i=S.ballKeys.findIndex(k=>Math.abs(k.time-t)<.08);
-  if(i>=0)S.ballKeys[i]=key;else S.ballKeys.push(key);
-  S.ballKeys.sort((a,b)=>a.time-b.time);
-  S.ball={x,y,r:P.ballR};
-}
-function resolveBall(t){
-  const a=S.ballKeys;
-  if(!a.length)return S.ball;
-  if(a.length===1)return{...a[0],mode:'key'};
-  if(t<=a[0].time)return{...a[0],mode:'key'};
-  if(t>=a[a.length-1].time)return{...a[a.length-1],mode:'key'};
-  for(let i=0;i<a.length-1;i++){
-    const A=a[i],B=a[i+1];
-    if(t>=A.time&&t<=B.time){
-      const u=(t-A.time)/(B.time-A.time||1);
-      return{x:lerp(A.x,B.x,u),y:lerp(A.y,B.y,u),r:lerp(A.r,B.r,u),mode:'interp'};
-    }
-  }
-  return null;
-}
-
-function ballZone(ball){
-  if(!ball)return'none';
-
-  // contact with red hands first
-  for(const item of currentHands()){
-    const p=item.type==='ai'?{x:item.h.cx,y:item.h.cy}:item.p;
-    const w=item.type==='ai'?handWidth(item.h):P.handW;
-    if(Math.hypot(ball.x-p.x,ball.y-p.y)<=ball.r+w*.60)return'hand';
-  }
-
-  // body-centered PPS / far field
-  const samples=[[0,0]];
-  for(let i=0;i<16;i++){
-    const a=i/16*Math.PI*2;
-    samples.push([Math.cos(a)*ball.r*.72,Math.sin(a)*ball.r*.72]);
-  }
-  let best='outside';
-  for(const [dx,dy] of samples){
-    const z=zoneAt(ball.x+dx,ball.y+dy);
-    if(z==='pps')return'pps';
-    if(z==='far')best='far';
-  }
-  return best;
-}
-function zoneLabel(z){
-  if(z==='hand')return'紅色：手部接觸區';
-  if(z==='pps')return'黃色：近體空間 PPS';
-  if(z==='far')return'藍色：遠體空間帶';
-  if(z==='outside')return'外層空間之外';
-  return'等待球';
-}
-function narration(z){
-  if(z==='hand')return'球已到達紅色手部接觸區，可用來討論觸球時機。';
-  if(z==='pps')return'球已進入黃色 PPS：觀察雙手是否已經準備完成。';
-  if(z==='far')return'球位於藍色遠體空間：尚未進入近體空間。';
-  if(z==='outside')return'球仍在外層空間之外，主要進行視覺預判。';
-  return'標記球後，系統會判斷球與紅／黃／藍區的關係。';
-}
-
-function drawBall(ball){
-  if(!ball)return;
-  const z=ballZone(ball);
-  ctx.save();
-  ctx.strokeStyle='#35f06a';ctx.fillStyle='#35f06a';ctx.lineWidth=Math.max(3,cv.width/430);
-  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.stroke();
-  ctx.beginPath();ctx.arc(ball.x,ball.y,Math.max(4,cv.width/230),0,Math.PI*2);ctx.fill();
-  ctx.lineWidth=1.4;ctx.beginPath();
-  ctx.moveTo(ball.x-ball.r*.26,ball.y);ctx.lineTo(ball.x+ball.r*.26,ball.y);
-  ctx.moveTo(ball.x,ball.y-ball.r*.26);ctx.lineTo(ball.x,ball.y+ball.r*.26);ctx.stroke();
-  ctx.font=`700 ${Math.max(13,cv.width/82)}px system-ui`;
-  ctx.fillText(zoneLabel(z),ball.x+ball.r+8,ball.y);
-  ctx.restore();
-}
-
-function draw(){
-  if(!video.videoWidth)return;
-  setCanvasSize();
-  ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.drawImage(video,0,0,cv.width,cv.height);
-
-  // field first, hands on top, ball last
-  drawBodyField();
-
-  for(const item of currentHands()){
-    if(item.type==='ai')drawAIHand(item.h);
-    else drawManualHand(item.side,item.p);
-  }
-
-  const ball=resolveBall(video.currentTime||0);
-  drawBall(ball);
-  updateUI(ball);
-}
-
-function recordZone(ball){
-  if(!ball)return;
-  const z=ballZone(ball);
-  if(z===S.lastZone)return;
-  S.lastZone=z;
-  S.events.unshift({time:video.currentTime,label:zoneLabel(z)});
-  S.events=S.events.slice(0,30);
-  $('#events').innerHTML=S.events.map((e,i)=>`<div class="event ${i===0?'current':''}"><b>${fmt(e.time)}</b> · ${e.label}</div>`).join('');
-}
-
-function updateUI(ball){
-  const z=ballZone(ball);
-  $('#zone').textContent=zoneLabel(z);
-  $('#ballSource').textContent=S.ballKeys.length?(S.ballKeys.length>1?'關鍵影格插值':'球關鍵影格'):'—';
-  $('#hands').textContent=S.hands.length;
-  const hs=currentHands();
-  $('#handSource').textContent=hs.length?([...new Set(hs.map(x=>x.type==='ai'?'AI':'手動'))].join(' + ')):'—';
-  $('#narration').textContent=narration(z);
-
-  $('#oBodyX').value=Math.round(P.bodyX*100)+'%';
-  $('#oBodyY').value=Math.round(P.bodyY*100)+'%';
-  $('#oBodyRX').value=Math.round(P.bodyRX*100)+'%';
-  $('#oBodyRY').value=Math.round(P.bodyRY*100)+'%';
-  $('#oPps').value=Math.round(P.pps*100)+'%';
-  $('#oFar').value=Math.round(P.far*100)+'%';
-  $('#oAlpha').value=Math.round(P.alpha*100)+'%';
-}
-
-function loop(now){
-  if(video.readyState>=2){
-    const moved=video.currentTime!==S.lastVideoTime;
-    const pausedRefresh=video.paused&&(now-S.lastPausedAt>180);
-    if(moved||pausedRefresh){
-      if(moved)S.lastVideoTime=video.currentTime;
-      if(pausedRefresh)S.lastPausedAt=now;
-      analyzeHands(now);
-      draw();
-      recordZone(resolveBall(video.currentTime||0));
-      $('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;
-      $('#time').textContent=`${fmt(video.currentTime)} / ${fmt(video.duration)}`;
-    }
-  }
-  requestAnimationFrame(loop);
-}
-
-cv.addEventListener('pointerdown',e=>{
-  if(!video.videoWidth||!S.picking)return;
-  const p=pointerXY(e);
-  if(S.picking==='ball'){
-    addBallKey(p.x,p.y);
-    S.ballMode='key';
-    $('#hint').innerHTML=`球關鍵影格已記錄於 <b>${fmt(video.currentTime)}</b>。可移到其他時間再標一次。`;
-  }else if(S.picking==='Left'||S.picking==='Right'){
-    S.manualHands[S.picking]=p;
-    $('#hint').textContent=`${S.picking==='Left'?'左手':'右手'}手動位置已設定。`;
-  }else if(S.picking==='body'){
-    P.bodyX=p.x/cv.width;P.bodyY=p.y/cv.height;
-    $('#bodyX').value=Math.round(P.bodyX*100);
-    $('#bodyY').value=Math.round(P.bodyY*100);
-    $('#hint').textContent='模擬本體中心已設定。';
-  }
-  S.picking=null;
-  document.querySelectorAll('.btn.active').forEach(b=>{if(['pickBall','pickLeft','pickRight','setBody'].includes(b.id))b.classList.remove('active')});
-  draw();
-});
-
-function beginPick(mode,id,text){
-  if(!video.videoWidth)return;
-  video.pause();S.picking=mode;
-  for(const k of ['pickBall','pickLeft','pickRight','setBody'])$('#'+k).classList.remove('active');
-  $('#'+id).classList.add('active');$('#hint').innerHTML=text;
-}
-$('#pickBall').onclick=()=>beginPick('ball','pickBall','請點影片中的 <b>球中心</b>。');
-$('#pickLeft').onclick=()=>beginPick('Left','pickLeft','請點 <b>左手掌中心</b>。');
-$('#pickRight').onclick=()=>beginPick('Right','pickRight','請點 <b>右手掌中心</b>。');
-$('#setBody').onclick=()=>beginPick('body','setBody','請點你認為的 <b>第一人稱本體中心</b>；通常位於畫面下方中央。');
-$('#clearMarks').onclick=()=>{S.ball=null;S.ballKeys=[];S.manualHands={Left:null,Right:null};S.events=[];S.lastZone='none';$('#events').innerHTML='<div class="event">尚無事件</div>';draw()};
-
-$('#videoFile').onchange=e=>{
-  const f=e.target.files?.[0];if(!f)return;
-  video.src=URL.createObjectURL(f);
-  video.onloadedmetadata=()=>{
-    setCanvasSize();
-    for(const id of ['play','pause','prev','next','seek'])$('#'+id).disabled=false;
-    S.hands=[];S.ball=null;S.ballKeys=[];S.manualHands={Left:null,Right:null};S.events=[];S.lastZone='none';S.lastVideoTime=-1;
-    setStatus('影片已載入',`${video.videoWidth}×${video.videoHeight} · 黃色/藍色使用獨立本體場`);
-    draw();
-  };
-};
-$('#play').onclick=()=>video.play();
-$('#pause').onclick=()=>video.pause();
-function step(d){if(!video.duration)return;video.pause();video.currentTime=clamp(video.currentTime+d/30,0,video.duration);S.lastPausedAt=0}
-$('#prev').onclick=()=>step(-1);$('#next').onclick=()=>step(1);
-$('#seek').oninput=()=>{if(video.duration)video.currentTime=video.duration*(+$('#seek').value/1000)};
-video.onplay=()=>setStatus('教學分析中','紅色手部與本體空間分開處理');
-video.onpause=()=>{setStatus('已暫停','可逐格、標球、標手或設定本體中心');S.lastPausedAt=0};
-
-$('#useAI').onchange=e=>{P.useAI=e.target.checked;if(!P.useAI)S.hands=[];draw()};
-$('#showGuide').onchange=e=>{P.showGuide=e.target.checked;draw()};
-$('#showHandSkeleton').onchange=e=>{P.showHandSkeleton=e.target.checked;draw()};
-
-for(const [id,key,scale] of [
-  ['bodyX','bodyX',.01],['bodyY','bodyY',.01],['bodyRX','bodyRX',.01],['bodyRY','bodyRY',.01],
-  ['pps','pps',.01],['far','far',.01],['alpha','alpha',.01]
-]){
-  $('#'+id).oninput=e=>{P[key]=+e.target.value*scale;draw()};
-}
-
-function setPreset(name){
-  if(name==='photo'){Object.assign(P,{bodyX:.50,bodyY:1.08,bodyRX:.42,bodyRY:.58,pps:.20,far:.24,alpha:.42})}
-  if(name==='compact'){Object.assign(P,{bodyX:.50,bodyY:1.10,bodyRX:.37,bodyRY:.52,pps:.16,far:.18,alpha:.40})}
-  if(name==='wide'){Object.assign(P,{bodyX:.50,bodyY:1.05,bodyRX:.48,bodyRY:.64,pps:.24,far:.30,alpha:.45})}
-  for(const [id,key] of [['bodyX','bodyX'],['bodyY','bodyY'],['bodyRX','bodyRX'],['bodyRY','bodyRY'],['pps','pps'],['far','far'],['alpha','alpha']])$('#'+id).value=Math.round(P[key]*100);
-  for(const id of ['presetPhoto','presetCompact','presetWide'])$('#'+id).classList.remove('active');
-  $('#preset'+name[0].toUpperCase()+name.slice(1)).classList.add('active');
-  draw();
-}
-$('#presetPhoto').onclick=()=>setPreset('photo');
-$('#presetCompact').onclick=()=>setPreset('compact');
-$('#presetWide').onclick=()=>setPreset('wide');
-
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active');
-});
-
-window.addEventListener('error',e=>setStatus('程式錯誤',e.message||'未知錯誤'));
-window.addEventListener('unhandledrejection',e=>setStatus('載入錯誤',e.reason?.message||String(e.reason||'')));
-
-updateUI(null);requestAnimationFrame(loop);initHands();
+updateUI(null,{valid:false,depth:null,approach:0,ttc:Infinity,vx:0,vy:0,speed:0,dr:0},'none');requestAnimationFrame(loop);initHands();
 </script>
 </body>
 </html>
