@@ -1,7 +1,3 @@
-PoseTwin POV Teaching v6.1 — Embodied Learning Lab
-
-GitHub Pages 使用：
-1. 將 index.html 上傳並覆蓋 repository 根目錄的 index.html。
-2. 不需要 scene.glb 或 manifest.json；影片由使用者在瀏覽器本機選擇。
-3. MediaPipe 手部辨識需要網路連線載入 CDN 與模型；失敗時仍可手動標記手部。
-4. 單眼深度與 TTC 是估測值；追蹤失敗時程式會停止更新這些數值。
+PoseTwin POV Teaching v6.2 — Dynamic PPS Heatmap
+核心修正：取消固定厚黃色/藍色殼。平時只有低透明藍色身體周邊場；球接近、TTC 縮短與手部方向才使局部活化連續轉黃。
+將 index.html 覆蓋 GitHub Pages repository 根目錄即可。

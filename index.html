@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061018">
-<title>PoseTwin POV Teaching v6.1 — Embodied Learning Lab</title>
+<title>PoseTwin POV Teaching v6.2 — Dynamic PPS Heatmap</title>
 <style>
 :root{
   color-scheme:dark;
@@ -49,10 +49,10 @@ code{color:#b9eaff}
 <div class="app">
   <div class="top">
     <div>
-      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v6.1</span></h1>
-      <div class="sub">具身認知 × Dynamic PPS × 球追蹤 × TTC × 學習任務</div>
+      <h1>PoseTwin <span style="color:#79dcff">POV Teaching v6.2</span></h1>
+      <div class="sub">具身認知 × Dynamic PPS Heatmap × 球追蹤 × TTC × 學習任務</div>
     </div>
-    <span class="badge">Embodied Learning Lab · GitHub Pages</span>
+    <span class="badge">Dynamic PPS Heatmap · GitHub Pages</span>
   </div>
 
   <div class="layout">
@@ -93,8 +93,8 @@ code{color:#b9eaff}
         </div>
         <div class="legend">
           <span><i class="dot" style="background:var(--red)"></i>紅：手／前臂</span>
-          <span><i class="dot" style="background:var(--yellow)"></i>黃：動態近體空間</span>
-          <span><i class="dot" style="background:var(--blue)"></i>藍：外層空間</span>
+          <span><i class="dot" style="background:var(--yellow)"></i>黃：高活化 Dynamic PPS</span>
+          <span><i class="dot" style="background:var(--blue)"></i>藍：低活化身體周邊場</span>
           <span><i class="dot" style="background:var(--green)"></i>綠：可靠追蹤中的球</span>
         </div>
       </div>
@@ -166,10 +166,10 @@ code{color:#b9eaff}
           <div class="ctrl"><div class="ctrlHead"><label>本體縱向半徑</label><output id="oBodyRY">58%</output></div><input id="bodyRY" type="range" min="34" max="88" value="58"></div>
           <div class="ctrl"><div class="ctrlHead"><label>PPS 基礎外擴</label><output id="oPps">20%</output></div><input id="pps" type="range" min="8" max="42" value="20"></div>
           <div class="ctrl"><div class="ctrlHead"><label>藍色外層寬度</label><output id="oFar">24%</output></div><input id="far" type="range" min="10" max="52" value="24"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>手部方向影響</label><output id="oHandGain">0.22</output></div><input id="handGain" type="range" min="0" max="60" value="22"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>接近速度影響</label><output id="oMotionGain">0.34</output></div><input id="motionGain" type="range" min="0" max="70" value="34"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>TTC 影響</label><output id="oTtcGain">0.42</output></div><input id="ttcGain" type="range" min="0" max="80" value="42"></div>
-          <div class="ctrl"><div class="ctrlHead"><label>空間透明度</label><output id="oAlpha">42%</output></div><input id="alpha" type="range" min="15" max="65" value="42"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>手部方向影響</label><output id="oHandGain">0.18</output></div><input id="handGain" type="range" min="0" max="60" value="18"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>接近速度影響</label><output id="oMotionGain">0.36</output></div><input id="motionGain" type="range" min="0" max="70" value="36"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>TTC 影響</label><output id="oTtcGain">0.46</output></div><input id="ttcGain" type="range" min="0" max="80" value="46"></div>
+          <div class="ctrl"><div class="ctrlHead"><label>空間透明度</label><output id="oAlpha">30%</output></div><input id="alpha" type="range" min="8" max="50" value="30"></div>
         </div>
       </div>
 
@@ -177,7 +177,7 @@ code{color:#b9eaff}
     </div>
   </div>
 
-  <div class="footer">PoseTwin POV Teaching v6.1 · 教學研究原型 · 單眼深度與 TTC 為估測值；Dynamic PPS 是教學計算模型，不是神經 PPS 的直接量測。</div>
+  <div class="footer">PoseTwin POV Teaching v6.2 · 教學研究原型 · 單眼深度與 TTC 為估測值；Dynamic PPS Heatmap 是教學計算模型，不是神經 PPS 的直接量測。</div>
 </div>
 
 <video id="video" muted playsinline style="display:none"></video>
@@ -192,7 +192,7 @@ const video=$('#video');
 const P={
   ballR:42,fov:100,ballD:.21,confMin:.54,maxCoast:5,autoRadius:true,
   bodyX:.50,bodyY:1.08,bodyRX:.42,bodyRY:.58,pps:.20,far:.24,
-  handGain:.22,motionGain:.34,ttcGain:.42,alpha:.42,
+  handGain:.18,motionGain:.36,ttcGain:.46,alpha:.30,
   showTrail:true,showField:true,showGuide:false,useHands:true
 };
 const S={
@@ -277,22 +277,165 @@ function kinematics(ball,now){
 
 function handItems(){const arr=[],used=new Set();for(const h of S.hands){if(h.side==='Left'||h.side==='Right'){arr.push({side:h.side,x:h.cx,y:h.cy,h});used.add(h.side)}}for(const side of ['Left','Right'])if(!used.has(side)&&S.manualHands[side])arr.push({side,x:S.manualHands[side].x,y:S.manualHands[side].y,h:null});return arr}
 function bodyParams(){return{cx:cv.width*P.bodyX,cy:cv.height*P.bodyY,rx:cv.width*P.bodyRX,ry:cv.height*P.bodyRY}}
-function bodyQ(x,y){const b=bodyParams(),n=3.4,dx=Math.abs((x-b.cx)/Math.max(1,b.rx)),dy=Math.abs((y-b.cy)/Math.max(1,b.ry));return Math.pow(Math.pow(dx,n)+Math.pow(dy,n),1/n)}
-function directionAlign(x,y,tx,ty,power=7){const b=bodyParams(),ax=x-b.cx,ay=y-b.cy,bx=tx-b.cx,by=ty-b.cy,ad=Math.hypot(ax,ay),bd=Math.hypot(bx,by);if(ad<1||bd<1)return 0;return Math.pow(Math.max(0,(ax*bx+ay*by)/(ad*bd)),power)}
-function fieldLimits(x,y,kin){
-  let ext=0;if(S.ball&&kin.valid){const approachN=clamp(kin.approach/5,0,1),ttcN=isFinite(kin.ttc)?clamp(1-kin.ttc/.9,0,1):0,align=directionAlign(x,y,S.ball.x,S.ball.y,8);ext+=align*(P.motionGain*approachN+P.ttcGain*ttcN)*.72}
-  const b=bodyParams();for(const h of handItems()){const reach=clamp(Math.hypot(h.x-b.cx,h.y-b.cy)/(cv.height*.7),0,1),align=directionAlign(x,y,h.x,h.y,9);ext+=align*P.handGain*reach*.55}
-  const ppsOuter=1+P.pps+ext,farOuter=ppsOuter+P.far;return{ppsOuter,farOuter,ext}
+function bodyQ(x,y){
+  const b=bodyParams(),n=3.15;
+  const dx=Math.abs((x-b.cx)/Math.max(1,b.rx));
+  const dy=Math.abs((y-b.cy)/Math.max(1,b.ry));
+  return Math.pow(Math.pow(dx,n)+Math.pow(dy,n),1/n)
 }
-function nearestHand(ball){let best=Infinity;for(const h of handItems())best=Math.min(best,Math.hypot(ball.x-h.x,ball.y-h.y));return best}
-function activationAt(ball,kin){if(!ball)return 0;const q=bodyQ(ball.x,ball.y),lim=fieldLimits(ball.x,ball.y,kin),spatial=clamp(1-(q-1)/Math.max(.01,lim.ppsOuter-1),0,1),ttcN=kin.valid&&isFinite(kin.ttc)?clamp(1-kin.ttc/.9,0,1):0,appN=kin.valid?clamp(kin.approach/5,0,1):0,hand=nearestHand(ball),handN=isFinite(hand)?clamp(1-hand/(cv.width*.34),0,1):0;return clamp(.42*spatial+.23*appN+.22*ttcN+.13*handN,0,1)}
-function zone(ball,kin){if(!ball||ball.lost)return'none';const hd=nearestHand(ball);if(isFinite(hd)&&hd<=ball.r+cv.width*.045)return'contact';const q=bodyQ(ball.x,ball.y),lim=fieldLimits(ball.x,ball.y,kin);if(q<=1)return'body';if(q<=lim.ppsOuter)return'pps';if(q<=lim.farOuter)return'far';return'outside'}
-function zoneLabel(z){if(z==='contact')return'紅色：手部接觸';if(z==='body')return'本體區／高度互動';if(z==='pps')return'黃色：Dynamic PPS';if(z==='far')return'藍色：外層空間';if(z==='outside')return'外層之外';return'等待可靠球追蹤'}
+function directionAlign(x,y,tx,ty,power=5){
+  const b=bodyParams(),ax=x-b.cx,ay=y-b.cy,bx=tx-b.cx,by=ty-b.cy;
+  const ad=Math.hypot(ax,ay),bd=Math.hypot(bx,by);
+  if(ad<1||bd<1)return 0;
+  return Math.pow(Math.max(0,(ax*bx+ay*by)/(ad*bd)),power)
+}
+function nearestHand(ball){
+  let best=Infinity;
+  for(const h of handItems())best=Math.min(best,Math.hypot(ball.x-h.x,ball.y-h.y));
+  return best
+}
 
-function smoothstep(a,b,x){const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)}
+/*
+ Dynamic PPS v6.2
+ ----------------
+ 不再畫固定黃色/藍色「殼」。
+ A(x,y) 是 body-centered activation：
+   base body field + hand direction + object approach + TTC.
+ 低活化 = 藍；中/高活化 = 連續漸變到黃。
+ 本體內側保持透明，避免遮住影片。
+*/
+function activationField(x,y,kin){
+  const q=bodyQ(x,y);
+
+  // Body-proximal base: deliberately stays below yellow threshold by itself.
+  const sigma=.32+P.pps*.72;
+  const base=.25*Math.exp(-Math.pow((q-1.08)/sigma,2));
+
+  // Keep field bounded; far controls how quickly it disappears.
+  const outer=1.32+P.pps+P.far*1.35;
+  const outerGate=1-smoothstep(outer-.16,outer+.10,q);
+
+  // Directional hand readiness. This alone should not make a big yellow shell.
+  let handTerm=0;
+  const b=bodyParams();
+  for(const h of handItems()){
+    const reach=clamp(Math.hypot(h.x-b.cx,h.y-b.cy)/(cv.height*.72),0,1);
+    const align=directionAlign(x,y,h.x,h.y,7);
+    const radial=Math.exp(-Math.pow((q-1.05)/(.42+P.pps*.55),2));
+    handTerm=Math.max(handTerm, P.handGain*reach*align*radial);
+  }
+
+  // Object-related activation only when tracking is physically reliable.
+  let objectTerm=0;
+  if(S.ball && !S.ball.lost && kin.valid){
+    const approachN=clamp(kin.approach/4.5,0,1);
+    const ttcN=isFinite(kin.ttc)?clamp(1-kin.ttc/1.05,0,1):0;
+    const align=directionAlign(x,y,S.ball.x,S.ball.y,5);
+
+    // Spread along the body→ball direction, not as a circle around the ball.
+    const radial=Math.exp(-Math.pow((q-1.10)/(.48+P.pps*.65),2));
+    const urgency=P.motionGain*approachN + P.ttcGain*ttcN;
+    objectTerm=align*radial*urgency;
+  }
+
+  return clamp((base+handTerm+objectTerm)*outerGate,0,1)
+}
+
+function activationAt(ball,kin){
+  if(!ball||ball.lost)return 0;
+  return activationField(ball.x,ball.y,kin)
+}
+function zone(ball,kin){
+  if(!ball||ball.lost)return'none';
+
+  const hd=nearestHand(ball);
+  if(isFinite(hd)&&hd<=ball.r+cv.width*.045)return'contact';
+
+  const q=bodyQ(ball.x,ball.y);
+  if(q<.90)return'body';
+
+  const a=activationAt(ball,kin);
+  if(a>=.45)return'pps';
+  if(a>=.14)return'far';
+  return'outside'
+}
+function zoneLabel(z){
+  if(z==='contact')return'紅色：手部接觸';
+  if(z==='body')return'本體區／高度互動';
+  if(z==='pps')return'黃色：Dynamic PPS 高活化';
+  if(z==='far')return'藍色：低活化周邊場';
+  if(z==='outside')return'主要互動場之外';
+  return'等待可靠球追蹤'
+}
+
+function smoothstep(a,b,x){
+  const t=clamp((x-a)/(b-a),0,1);
+  return t*t*(3-2*t)
+}
 function drawField(kin){
-  if(!P.showField)return;const scale=.24,sw=Math.max(150,Math.round(cv.width*scale)),sh=Math.max(110,Math.round(cv.height*scale));if(!S.fieldCanvas||S.fieldCanvas.width!==sw||S.fieldCanvas.height!==sh){S.fieldCanvas=document.createElement('canvas');S.fieldCanvas.width=sw;S.fieldCanvas.height=sh}const t=S.fieldCanvas.getContext('2d'),img=t.createImageData(sw,sh),feather=.045;
-  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const X=x/scale,Y=y/scale,q=bodyQ(X,Y),lim=fieldLimits(X,Y,kin);let R=0,G=0,B=0,A=0;if(q>1-feather&&q<=lim.ppsOuter+feather){const band=smoothstep(1-feather,1+feather,q)*(1-smoothstep(lim.ppsOuter-feather,lim.ppsOuter+feather,q));if(band>0){R=255;G=217;B=42;A=Math.round(255*Math.min(.60,P.alpha*1.12)*band)}}if(q>lim.ppsOuter-feather&&q<=lim.farOuter+feather){const band=smoothstep(lim.ppsOuter-feather,lim.ppsOuter+feather,q)*(1-smoothstep(lim.farOuter-feather,lim.farOuter+feather,q));const aa=Math.round(255*Math.min(.44,P.alpha*.86)*band);if(aa>A||q>lim.ppsOuter+feather){R=51;G=143;B=255;A=aa}}const i=(y*sw+x)*4;img.data[i]=R;img.data[i+1]=G;img.data[i+2]=B;img.data[i+3]=A}t.putImageData(img,0,0);ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(S.fieldCanvas,0,0,cv.width,cv.height);if(P.showGuide){const b=bodyParams();ctx.setLineDash([7,7]);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(b.cx,b.cy,b.rx,b.ry,0,0,Math.PI*2);ctx.stroke()}ctx.restore()
+  if(!P.showField)return;
+
+  const scale=.22;
+  const sw=Math.max(150,Math.round(cv.width*scale));
+  const sh=Math.max(110,Math.round(cv.height*scale));
+
+  if(!S.fieldCanvas||S.fieldCanvas.width!==sw||S.fieldCanvas.height!==sh){
+    S.fieldCanvas=document.createElement('canvas');
+    S.fieldCanvas.width=sw;
+    S.fieldCanvas.height=sh;
+  }
+
+  const t=S.fieldCanvas.getContext('2d');
+  const img=t.createImageData(sw,sh);
+
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<sw;x++){
+      const X=x/scale,Y=y/scale;
+      const q=bodyQ(X,Y);
+
+      // Never paint a fake solid body/egg in the middle.
+      let A=0;
+      if(q>.88) A=activationField(X,Y,kin);
+
+      let R=0,G=0,B=0,alpha=0;
+
+      if(A>=.12){
+        // Continuous blue -> yellow heatmap.
+        const mix=smoothstep(.30,.72,A);
+        R=Math.round(51+(255-51)*mix);
+        G=Math.round(143+(217-143)*mix);
+        B=Math.round(255+(42-255)*mix);
+
+        // Very restrained opacity: preserve the actual video.
+        const visibility=smoothstep(.12,.34,A);
+        const urgency=smoothstep(.48,.90,A);
+        alpha=Math.round(255*P.alpha*(.18+.42*visibility+.28*urgency));
+      }
+
+      const i=(y*sw+x)*4;
+      img.data[i]=R;
+      img.data[i+1]=G;
+      img.data[i+2]=B;
+      img.data[i+3]=clamp(alpha,0,92); // hard cap ~36% opacity
+    }
+  }
+
+  t.putImageData(img,0,0);
+  ctx.save();
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(S.fieldCanvas,0,0,cv.width,cv.height);
+
+  // Baseline guide is optional only; no permanent yellow/blue boundaries.
+  if(P.showGuide){
+    const b=bodyParams();
+    ctx.setLineDash([7,7]);
+    ctx.strokeStyle='rgba(255,255,255,.34)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.ellipse(b.cx,b.cy,b.rx,b.ry,0,0,Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.restore()
 }
 function convexHull(points){if(points.length<3)return points;const pts=[...points].sort((a,b)=>a.x===b.x?a.y-b.y:a.x-b.x),cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[];for(const p of pts){while(lo.length>=2&&cross(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p)}const up=[];for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(up.length>=2&&cross(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p)}lo.pop();up.pop();return lo.concat(up)}
 function drawHands(){const col='rgba(255,62,73,.78)';for(const item of handItems()){if(item.h){const lm=item.h.lm,hull=convexHull(lm),wrist=lm[0],palm=lm[9];let dx=wrist.x-palm.x,dy=wrist.y-palm.y,d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;if(dy<0){dx=-dx;dy=-dy}const entry={x:wrist.x+dx*cv.height*.42,y:wrist.y+dy*cv.height*.42},w=clamp(Math.hypot(lm[5].x-lm[17].x,lm[5].y-lm[17].y)*.88,24,105);ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w*.78;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(entry.x,entry.y);ctx.lineTo(wrist.x,wrist.y);ctx.stroke();ctx.fillStyle=col;ctx.strokeStyle='#ff2b39';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(hull[0].x,hull[0].y);for(let i=1;i<hull.length;i++)ctx.lineTo(hull[i].x,hull[i].y);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}else{ctx.save();ctx.fillStyle=col;ctx.beginPath();ctx.arc(item.x,item.y,P.ballR*.72,0,Math.PI*2);ctx.fill();ctx.restore()}}}
@@ -307,7 +450,7 @@ function teachingText(ball,kin,z){
   const dir=kin.dr>2?'視覺大小正在增加':kin.dr<-2?'視覺大小正在減少':'視覺大小變化不明顯';
   const measure=`量測：r=${ball.r.toFixed(1)} px，影像速度=${kin.speed.toFixed(0)} px/s${kin.valid&&kin.depth?`，Z≈${kin.depth.toFixed(2)} m`:''}${kin.valid&&isFinite(kin.ttc)?`，TTC≈${kin.ttc.toFixed(2)} s`:''}。`;
   const infer=`推論：${zoneLabel(z)}；${dir}。`;
-  let n=z==='contact'?'球已接近紅色手部接觸區，可比較接觸前後的方向與速度。':z==='body'?'球進入本體高互動區，應關注接觸或閃避行動。':z==='pps'?'球進入黃色 Dynamic PPS：空間意義已從「看見」轉向「準備行動」。':z==='far'?'球在藍色外層空間：主要任務仍是預判方向與接近趨勢。':'球仍在主要互動空間之外。';
+  let n=z==='contact'?'球已接近紅色手部接觸區，可比較接觸前後的方向與速度。':z==='body'?'球進入本體高互動區，應關注接觸或閃避行動。':z==='pps'?'球所在方向的 Dynamic PPS 活化升高：空間意義已從「看見」轉向「準備行動」。':z==='far'?'球目前只引起低度藍色活化：主要任務仍是預判方向與接近趨勢。':'球仍在主要互動空間之外。';
   let p='觀察球的位置、大小與方向變化，先用自然語言描述現象。';
   if(S.teachMode==='predict')p=isFinite(kin.ttc)?`不要先看結果：TTC 約 ${kin.ttc.toFixed(2)} 秒。你預測下一個事件是進入 PPS、接觸、改變方向，還是離開？`:'根據目前方向與球大小變化，預測下一個事件，並說明依據。';
   if(S.teachMode==='explain')p='把「可直接量測的證據」與「你對事件的解釋」分成兩句；哪些是事實，哪些是推論？';
@@ -319,7 +462,7 @@ function updateUI(ball,kin,z){
   $('#mTrack').textContent=ball?S.trackMode:'等待球';$('#mConf').textContent=ball&&!ball.lost?Math.round(S.trackConf*100)+'%':'—';$('#mRadius').textContent=ball&&!ball.lost?ball.r.toFixed(1)+' px':'—';$('#mSpeed').textContent=ball&&!ball.lost?kin.speed.toFixed(0)+' px/s':'—';$('#mDepth').textContent=kin.valid&&kin.depth?kin.depth.toFixed(2)+' m':(S.trackState==='lost'?'暫停':'—');$('#mApproach').textContent=kin.valid?kin.approach.toFixed(2)+' m/s':(S.trackState==='lost'?'暫停':'—');$('#mTTC').textContent=kin.valid&&isFinite(kin.ttc)?kin.ttc.toFixed(2)+' s':(S.trackState==='lost'?'暫停':'—');$('#mActivation').textContent=ball&&!ball.lost?Math.round(activationAt(ball,kin)*100)+'%':'—';$('#mZone').textContent=zoneLabel(z);$('#mHands').textContent=handItems().length;
   const tt=teachingText(ball,kin,z);$('#narration').textContent=tt.n;$('#evidence').textContent=tt.e;$('#taskPrompt').textContent=tt.p;
   $('#oBallR').value=Math.round(P.ballR)+' px';$('#oFov').value=Math.round(P.fov)+'°';$('#oBallD').value=Math.round(P.ballD*100)+' cm';$('#oConfMin').value=Math.round(P.confMin*100)+'%';$('#oCoast').value=P.maxCoast+' 格';$('#oBodyX').value=Math.round(P.bodyX*100)+'%';$('#oBodyY').value=Math.round(P.bodyY*100)+'%';$('#oBodyRX').value=Math.round(P.bodyRX*100)+'%';$('#oBodyRY').value=Math.round(P.bodyRY*100)+'%';$('#oPps').value=Math.round(P.pps*100)+'%';$('#oFar').value=Math.round(P.far*100)+'%';$('#oHandGain').value=P.handGain.toFixed(2);$('#oMotionGain').value=P.motionGain.toFixed(2);$('#oTtcGain').value=P.ttcGain.toFixed(2);$('#oAlpha').value=Math.round(P.alpha*100)+'%';
-  S.latest={version:'PoseTwin POV Teaching v6.1',time:video.currentTime||0,tracking:{state:S.trackState,mode:S.trackMode,confidence:S.trackConf,ball:ball&&!ball.lost?{x:ball.x,y:ball.y,r:ball.r}:null},measurements:{depthM:kin.valid?kin.depth:null,approachMS:kin.valid?kin.approach:null,ttcS:kin.valid&&isFinite(kin.ttc)?kin.ttc:null,imageSpeedPxS:kin.speed},embodied:{zone:z,zoneLabel:zoneLabel(z),ppsActivation:ball&&!ball.lost?activationAt(ball,kin):null,hands:handItems().length},teaching:{mode:S.teachMode,narration:tt.n,evidence:tt.e,prompt:tt.p},events:[...S.events].reverse()}
+  S.latest={version:'PoseTwin POV Teaching v6.2',time:video.currentTime||0,tracking:{state:S.trackState,mode:S.trackMode,confidence:S.trackConf,ball:ball&&!ball.lost?{x:ball.x,y:ball.y,r:ball.r}:null},measurements:{depthM:kin.valid?kin.depth:null,approachMS:kin.valid?kin.approach:null,ttcS:kin.valid&&isFinite(kin.ttc)?kin.ttc:null,imageSpeedPxS:kin.speed},embodied:{zone:z,zoneLabel:zoneLabel(z),ppsActivation:ball&&!ball.lost?activationAt(ball,kin):null,hands:handItems().length},teaching:{mode:S.teachMode,narration:tt.n,evidence:tt.e,prompt:tt.p},events:[...S.events].reverse()}
 }
 function draw(now=performance.now()){if(!video.videoWidth)return;setSize();ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(video,0,0,cv.width,cv.height);const ball=S.ball,kin=kinematics(ball,now),z=zone(ball,kin);drawField(kin);drawHands();drawTrail();drawBall(ball,z);updateUI(ball,kin,z);recordZone(z)}
 function loop(now){if(video.readyState>=2){const moved=video.currentTime!==S.lastVideoTime,pausedRefresh=video.paused&&(now-S.lastPausedAt>180);if(moved||pausedRefresh){if(moved)S.lastVideoTime=video.currentTime;if(pausedRefresh)S.lastPausedAt=now;analyzeHands(now);if(moved&&S.ball&&S.trackState!=='lost')trackBall(now);draw(now);$('#seek').value=video.duration?Math.round(video.currentTime/video.duration*1000):0;$('#time').textContent=`${fmt(video.currentTime)} / ${fmt(video.duration)}`}}requestAnimationFrame(loop)}
